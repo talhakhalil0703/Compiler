@@ -2,7 +2,6 @@
 
 int main(int argc, char *argv[])
 {
-    std::istream *input;
     std::fstream file;
 
     if (argc != 2)
@@ -11,18 +10,16 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    file.open(argv[1]);
+    file.open(argv[1], std::ios::in);
     if (!file.is_open())
     {
         std::cerr << "Could not open file: \"" << argv[1] << "\"";
         return EXIT_FAILURE;
     }
 
-    input = &file;
+    Scanner scanner = Scanner(&file);
 
-    Scanner scanner = Scanner(input);
-
-    auto lexer = std::make_unique<Scanner>(input);
+    auto lexer = std::make_unique<Scanner>(&file);
 
     Token tok;
 
