@@ -120,7 +120,7 @@ inline char const *getName(Token tok)
     case Token::T_COMMA:
         return ",";
     case Token::T_COMMENT:
-        return "//";
+        return "COMMENT";
     default:
         return "";
     }
