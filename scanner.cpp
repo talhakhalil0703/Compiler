@@ -82,6 +82,9 @@ bool Scanner::is_special(char c)
     case '<':
     case '>':
     case '|':
+    case '=':
+    case '!':
+    case '&':
     case '(':
     case ')':
     case '{':
@@ -129,6 +132,30 @@ void Scanner::special()
     case '%':
         curr_token = Token::T_MODULUS;
         break;
+    case '&':
+        curr_token = Token::T_AND;
+        if (in->peek() == '&')
+        {
+            curr_token = Token::T_AND;
+            in->get();
+        }
+        else
+        {
+            illegal(c);
+        }
+        break;
+    case '|':
+        curr_token = Token::T_OR;
+        if (in->peek() == '|')
+        {
+            curr_token = Token::T_OR;
+            in->get();
+        }
+        else
+        {
+            illegal(c);
+        }
+        break;
     case '<':
         curr_token = Token::T_LESSTHAN;
         if (in->peek() == '=')
@@ -142,6 +169,22 @@ void Scanner::special()
         if (in->peek() == '=')
         {
             curr_token = Token::T_GREATERTHANEQUAL;
+            in->get();
+        }
+        break;
+    case '=':
+        curr_token = Token::T_ASSIGN;
+        if (in->peek() == '=')
+        {
+            curr_token = Token::T_EQUAL;
+            in->get();
+        }
+        break;
+    case '!':
+        curr_token = Token::T_NOT;
+        if (in->peek() == '=')
+        {
+            curr_token = Token::T_NOTEQUAL;
             in->get();
         }
         break;
