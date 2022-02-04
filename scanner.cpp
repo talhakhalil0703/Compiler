@@ -81,6 +81,7 @@ void Scanner::string_state()
             case 'n':
             case '\'':
             case '\\':
+            case '\"':
                 e = in->get();
                 lexeme.push_back('\\');
                 lexeme.push_back(e);
