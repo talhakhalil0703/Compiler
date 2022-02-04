@@ -1,6 +1,6 @@
 CC := g++
-CXXFLAGS := -O2
+CXXFLAGS := -O2 -Wall
 EXEC := main
 
-all: main.cpp
+all: main.cpp scanner.cpp
 	$(CC) $(CXXFLAGS) -o ${EXEC} $^
