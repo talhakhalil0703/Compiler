@@ -3,10 +3,12 @@
 #define SCANNER
 #include <string>
 #include <cstring>
+#include <sstream>
 #include <iostream>
 #include <fstream>
 #include <memory>
 #include "token.hpp"
+#include "errorhandler.hpp"
 
 class Scanner
 {
@@ -21,6 +23,7 @@ public:
 protected:
     int line_number;
     Token curr_token;
+    ErrorHandler error_handler = ErrorHandler();
     std::string lexeme;
 
 private:

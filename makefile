@@ -1,7 +1,7 @@
 CC := g++
-CXXFLAGS := -std=c++14 -O2 -Wall -g
+CXXFLAGS := -std=c++14 -Wall -g
 EXEC := main
-OBJS := main.cpp scanner.cpp token.hpp
+OBJS := main.cpp scanner.cpp token.hpp errorhandler.cpp errorhandler.hpp
 
 all: ${OBJS}
 	$(CC) $(CXXFLAGS) -o ${EXEC} $^

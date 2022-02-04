@@ -52,7 +52,7 @@ Token Scanner::Scan()
     return Token::T_EOF;
 }
 
-// Ignore till newline
+// Ignore until a newline is detected
 void Scanner::comment_state()
 {
     while (in->peek() != '\n')
@@ -65,9 +65,49 @@ void Scanner::comment_state()
 // Ignore until a newline is detected
 void Scanner::string_state()
 {
+    char c;
     while (in->peek() != '"' && in->peek() != '\n')
     {
-        lexeme.push_back(in->get());
+        c = in->get();
+        if (c == '\\')
+        {
+            char e = in->peek();
+            switch (e)
+            {
+            case 'b':
+            case 'f':
+            case 't':
+            case 'r':
+            case 'n':
+            case '\'':
+            case '\\':
+                e = in->get();
+                if (in->peek() == ' ' || in->peek() == '"')
+                {
+                    lexeme.push_back('\\');
+                    lexeme.push_back(e);
+                }
+                else
+                {
+                    std::ostringstream stream;
+                    stream << "Unrecognized escape character in line at line ";
+                    stream << line_number << '\n';
+                    std::string m = stream.str();
+                    error_handler.NonRecoverableError(m);
+                }
+                break;
+            default:
+                std::ostringstream stream;
+                stream << "Unrecognized escape character in line at line ";
+                stream << line_number << '\n';
+                std::string m = stream.str();
+                error_handler.NonRecoverableError(m);
+            }
+        }
+        else
+        {
+            lexeme.push_back(c);
+        }
     }
     if (in->peek() == '"')
         in->get();
@@ -76,8 +116,11 @@ void Scanner::string_state()
 // Prints out a warning for a bad character to stderr
 void Scanner::illegal(char c)
 {
-    std::cerr << "Illegal character " << c << " at line "
-              << line_number << '\n';
+    std::ostringstream stream;
+    stream << "Illegal character " << c;
+    stream << ", at line " << line_number << '\n';
+    std::string m = stream.str();
+    error_handler.Warning(m);
 }
 
 // Check if a char is special/operator
@@ -102,12 +145,14 @@ bool Scanner::is_special(char c)
     case '}':
     case ';':
     case ',':
+    case '"':
         return true;
     default:
         return false;
     }
 }
 
+//Gets the lexeme and concats with Lexeme: [lexeme] for better output
 std::string Scanner::GetLexeme()
 {
     if (lexeme.empty())
