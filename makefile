@@ -1,5 +1,5 @@
 CC := g++
-CXXFLAGS := -std=c++14 -O2 -Wall
+CXXFLAGS := -std=c++14 -O2 -Wall -g
 EXEC := main
 OBJS := main.cpp scanner.cpp token.hpp
 

@@ -9,43 +9,46 @@ Scanner::Scanner(std::istream *input)
 
 Token Scanner::Scan()
 {
-    lexeme.clear();
-    char c = in->peek();
-    if (c == '\n')
+    while (!in->eof())
     {
-        line_number++;
-        in->get();
-    }
-    else if (isspace(c))
-    {
-        in->get();
-    }
-    else if (isalpha(c) || c == '_')
-    {
-        identifier();
-        is_reserved();
-        return curr_token;
-    }
-    else if (isdigit(c))
-    {
-        number();
-        return curr_token;
-    }
-    else if (is_special(c))
-    {
-        special();
-        return curr_token;
-    }
-    else if (in->eof())
-    {
-        return Token::T_EOF;
-    }
-    else
-    {
-        illegal(c);
-        in->get();
-    }
 
+        lexeme.clear();
+        char c = in->peek();
+        if (c == '\n')
+        {
+            line_number++;
+            in->get();
+        }
+        else if (isspace(c))
+        {
+            in->get();
+        }
+        else if (isalpha(c) || c == '_')
+        {
+            identifier();
+            is_reserved();
+            return curr_token;
+        }
+        else if (isdigit(c))
+        {
+            number();
+            return curr_token;
+        }
+        else if (is_special(c))
+        {
+            special();
+            return curr_token;
+        }
+        else if (in->eof())
+        {
+            return Token::T_EOF;
+        }
+        else
+        {
+            illegal(c);
+            in->get();
+        }
+    }
     return Token::T_EOF;
 }
 
