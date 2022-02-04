@@ -1,3 +1,5 @@
 # CPSC 411- Compiler
 
-CPSC 411 Compiler Project
+To build the compiler simple run make.
+
+Compiler usage: main [filename]

@@ -39,7 +39,8 @@ enum class Token
     T_LEFTBRACE,
     T_RIGHTBRACE,
     T_SEMICOLON,
-    T_COMMA
+    T_COMMA,
+    T_COMMENT
 };
 
 // Returns the token in string format
@@ -118,6 +119,8 @@ inline char const *getName(Token tok)
         return ";";
     case Token::T_COMMA:
         return ",";
+    case Token::T_COMMENT:
+        return "//";
     default:
         return "";
     }
