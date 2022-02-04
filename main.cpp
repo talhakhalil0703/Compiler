@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     while ((tok = lexer->Scan()) != Token::T_EOF)
     {
         std::cout << "Line: " << lexer->GetLine() << " Token: "
-                  << getName(tok) << " Lexeme:" << lexer->GetLexeme() << "\n";
+                  << getName(tok) << lexer->GetLexeme() << "\n";
     }
 
     return EXIT_SUCCESS;

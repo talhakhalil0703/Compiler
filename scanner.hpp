@@ -15,7 +15,7 @@ public:
     ~Scanner() = default;
 
     int GetLine() { return line_number; };
-    std::string GetLexeme() { return lexeme; };
+    std::string GetLexeme();
     Token Scan();
 
 protected:

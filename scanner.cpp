@@ -94,6 +94,13 @@ bool Scanner::is_special(char c)
     }
 }
 
+std::string Scanner::GetLexeme()
+{
+    if (lexeme.empty())
+        return "";
+    return " Lexeme: " + lexeme;
+};
+
 // Changes the current token to the corresponding operator, handles comments
 // as well as strings
 void Scanner::special()
