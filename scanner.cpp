@@ -82,19 +82,8 @@ void Scanner::string_state()
             case '\'':
             case '\\':
                 e = in->get();
-                if (in->peek() == ' ' || in->peek() == '"')
-                {
-                    lexeme.push_back('\\');
-                    lexeme.push_back(e);
-                }
-                else
-                {
-                    std::ostringstream stream;
-                    stream << "Unrecognized escape character in line at line ";
-                    stream << line_number << '\n';
-                    std::string m = stream.str();
-                    error_handler.NonRecoverableError(m);
-                }
+                lexeme.push_back('\\');
+                lexeme.push_back(e);
                 break;
             default:
                 std::ostringstream stream;
