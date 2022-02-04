@@ -2,21 +2,33 @@
 
 void Scanner::ReadFromFile(std::string file_address)
 {
-    std::string line;
+    // char character;
 
-    std::ifstream read_file;
-    read_file.open(file_address);
-    if (read_file.is_open())
+    std::ifstream ifs;
+
+    ifs.open(file_address, std::ifstream::in);
+
+    if (ifs.is_open())
     {
-        while (std::getline(read_file, line))
+        char c = ifs.get();
+
+        while (ifs.good())
         {
-            std::cout << line << '\n';
+            if (c == ' ')
+            {
+            }
+            else
+            {
+                std::cout << c;
+            }
+            c = ifs.get();
         }
-        read_file.close();
+
+        ifs.close();
     }
     else
     {
-        std::cerr << "Could not read file " << file_address << "\n";
+        std::cerr << "Could not read file: \"" << file_address << "\" \n";
     }
     return;
 }
