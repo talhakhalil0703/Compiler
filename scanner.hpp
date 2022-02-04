@@ -31,6 +31,7 @@ private:
     void number();
     void illegal(char c);
     void comment_state();
+    void string_state();
     void special();
     bool is_special(char c);
 };

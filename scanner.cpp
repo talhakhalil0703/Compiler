@@ -62,6 +62,17 @@ void Scanner::comment_state()
     std::cout << "Comment caught at line " << line_number << "\n";
 }
 
+// Ignore until a newline is detected
+void Scanner::string_state()
+{
+    while (in->peek() != '"' && in->peek() != '\n')
+    {
+        lexeme.push_back(in->get());
+    }
+    if (in->peek() == '"')
+        in->get();
+}
+
 // Prints out a warning for a bad character to stderr
 void Scanner::illegal(char c)
 {
@@ -128,6 +139,10 @@ void Scanner::special()
             in->get();
             comment_state();
         }
+        break;
+    case '"':
+        curr_token = Token::T_STRING;
+        string_state();
         break;
     case '%':
         curr_token = Token::T_MODULUS;
