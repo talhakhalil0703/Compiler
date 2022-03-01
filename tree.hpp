@@ -344,6 +344,7 @@ public:
         tree_type = "or";
     }
 };
+
 // Used for error checking because do not want to deal with null types
 // We can instead compare and check the type property to determine if
 // the node is empty

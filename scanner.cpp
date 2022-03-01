@@ -1,4 +1,4 @@
-//Code adapted from what Shankar Ganesh (TA) provided in tutorials
+// Code adapted from what Shankar Ganesh (TA) provided in tutorials
 #include "scanner.hpp"
 
 Scanner::Scanner(std::istream *input)
@@ -142,12 +142,12 @@ bool Scanner::is_special(char c)
     }
 }
 
-//Gets the lexeme and concats with Lexeme: [lexeme] for better output
+// Gets the lexeme and concats with Lexeme: [lexeme] for better output
 std::string Scanner::GetLexeme()
 {
     if (lexeme.empty())
         return "";
-    return " Lexeme: " + lexeme;
+    return lexeme;
 };
 
 // Changes the current token to the corresponding operator, handles comments
@@ -261,8 +261,8 @@ void Scanner::special()
     }
 }
 
-//Creates an identifier if the stream of characters started with an alpha or _
-//and is followed by any number of alphanumerics or _
+// Creates an identifier if the stream of characters started with an alpha or _
+// and is followed by any number of alphanumerics or _
 void Scanner::identifier()
 {
     curr_token = Token::T_ID;

@@ -12,13 +12,8 @@ Tree Parser::parse()
 
 void Parser::consumeToken()
 {
+    lexeme = scanner->GetLexeme();
     nextToken = scanner->Scan();
-
-    // while ((nextToken = scanner->Scan()) != Token::T_EOF)
-    // {
-    //     std::cout << "Line: " << scanner->GetLine() << " Token: "
-    //               << getName(nextToken) << scanner->GetLexeme() << "\n";
-    // }
 }
 
 Tree Parser::start()
@@ -171,11 +166,9 @@ void Parser::identifier(Tree &tree)
     if (nextToken == Token::T_ID)
     {
         consumeToken();
-        tree.branches.push_back(Identifier(scanner->GetLexeme()));
-    }
-    else
-    {
-        // TODO: Error Statement, expected an identified, this is not it
+        Identifier id = Identifier(lexeme);
+        id.line_number = scanner->GetLine();
+        tree.branches.push_back(id);
     }
 }
 

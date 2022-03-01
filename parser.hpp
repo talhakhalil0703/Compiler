@@ -14,6 +14,7 @@ public:
 
     Tree parse();
     Token nextToken;
+    std::string lexeme;
     // int GetLine() { return line_number; };
     // std::string GetLexeme();
     // Token Scan();
