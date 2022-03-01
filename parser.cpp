@@ -26,6 +26,26 @@ void Parser::consumeToken()
     nextToken = scanner->Scan();
 }
 
+bool Parser::token_in_statement_function(Token tok)
+{
+    switch (tok)
+    {
+    case Token::T_BOOLEAN:
+    case Token::T_INT:
+    case Token::T_LEFTBRACE:
+    case Token::T_SEMICOLON:
+    case Token::T_ID:
+    case Token::T_BREAK:
+    case Token::T_RETURN:
+    case Token::T_IF:
+    case Token::T_WHILE:
+        return true;
+
+    default:
+        return false;
+    }
+}
+
 Tree Parser::start()
 {
     Tree program = Program();
@@ -307,7 +327,6 @@ void Parser::main_function_declarator(Tree &tree)
     else
     {
         error("Syntax error, probably missing (, for main function");
-        // TODO: Error expected Left (
     }
 }
 
@@ -334,14 +353,12 @@ void Parser::block(Tree &tree)
             }
             else
             {
-                // TODO: Error expected right }
                 error("Syntax error, probably missing } for block statement");
             }
         }
     }
     else
     {
-        // TODO: Error Expected left {
         error("Syntax error, probably missing { for block statement");
     }
 }
@@ -354,9 +371,11 @@ void Parser::block_statements(Tree &tree)
 
 void Parser::block_statements_(Tree &tree)
 {
-    // TODO: needs an if statement here to not get stuck in a infinite loop
-    block_statement(tree);
-    block_statements_(tree);
+    if (token_in_statement_function(nextToken))
+    {
+        block_statement(tree);
+        block_statements_(tree);
+    }
 }
 
 void Parser::block_statement(Tree &tree)
@@ -381,6 +400,7 @@ void Parser::statement(Tree &tree)
         break;
     case Token::T_SEMICOLON:
         consumeToken();
+        return;
         break;
     case Token::T_ID:
         statement_expression(statement_tree);
@@ -470,7 +490,7 @@ void Parser::statement(Tree &tree)
         break;
     default:
         // TODO: Error invalid statement type given.
-        error("Syntax Error");
+        // error("Syntax Error");
         break;
     }
 
@@ -823,7 +843,7 @@ Tree Parser::assignment()
     {
         consumeToken();
         assignment.branches.push_back(Identifier(scanner->GetLexeme()));
-        if (nextToken == Token::T_EQUAL)
+        if (nextToken == Token::T_ASSIGN)
         {
             consumeToken();
             assignment.branches.push_back(assignment_expression());
@@ -831,11 +851,7 @@ Tree Parser::assignment()
         }
         else
         {
-            std::ostringstream stream;
-            stream << "Expected an 'equal' Token at Line: ";
-            stream << scanner->GetLine() << '\n';
-            std::string m = stream.str();
-            error_handler.NonRecoverableError(m);
+            error("Expected an 'assign' token, ");
         }
     }
 

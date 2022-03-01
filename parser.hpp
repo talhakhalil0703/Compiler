@@ -29,7 +29,7 @@ private:
     // std::istream *in;
     void error(std::string m);
     void consumeToken();
-
+    bool token_in_statement_function(Token tok);
     Tree start();
 
     void literal(Tree &tree);
