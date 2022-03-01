@@ -19,6 +19,14 @@ Compiler usage: main [filename]
 
 #### Parser Tests
 8. Ensures an empty main function can be paresed correctly
+9. Syntax error for main missing right bracket
+10. Syntax error for main missing left bracket
+11. Syntax error for main right parantheses
+12. Syntax error for main left parantheses
+13. Syntax error for main missing parantheses
+14. Syntax error for main missing brackets
+15. Ensures main can be a one liner
+16. Ensures a main function with a variable assignment to number works
 
 ### Grammar of J-- Specification
 
