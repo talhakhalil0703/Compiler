@@ -17,6 +17,9 @@ Compiler usage: main [filename]
 6. Ensures all operators are correctly found
 7. Ensures all strings are read correctly
 
+#### Parser Tests
+8. Ensures an empty main function can be paresed correctly
+
 ### Grammar of J-- Specification
 
 start           : /* empty */
