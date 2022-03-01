@@ -6,9 +6,9 @@ class Tree
 {
 public:
     std::vector<Tree> branches = {};
-    int line_number;
+    int line_number; // Value of -1 indicates that this is garbage
     std::string attr;
-    std::string tree_type;
+    std::string type;
 
 protected:
 };
@@ -18,7 +18,7 @@ class Program : public Tree
 public:
     Program()
     {
-        tree_type = "program";
+        type = "program";
     }
 };
 
@@ -32,7 +32,7 @@ public:
     Number(std::string number)
     {
         attr = number;
-        tree_type = "number";
+        type = "number";
     }
 };
 
@@ -42,7 +42,7 @@ public:
     String(std::string str)
     {
         attr = str;
-        tree_type = "string";
+        type = "string";
     }
 };
 
@@ -51,7 +51,7 @@ class TrueLiteral : public Tree
 public:
     TrueLiteral()
     {
-        tree_type = "true";
+        type = "true";
     }
 };
 
@@ -60,7 +60,7 @@ class FalseLiteral : public Tree
 public:
     FalseLiteral()
     {
-        tree_type = "false";
+        type = "false";
     }
 };
 
@@ -69,7 +69,7 @@ class Int : public Tree
 public:
     Int()
     {
-        tree_type = "int";
+        type = "int";
     }
 };
 
@@ -78,7 +78,7 @@ class Boolean : public Tree
 public:
     Boolean()
     {
-        tree_type = "boolean";
+        type = "boolean";
     }
 };
 
@@ -87,7 +87,7 @@ class VariableDeclaration : public Tree
 public:
     VariableDeclaration()
     {
-        tree_type = "variable_declaration";
+        type = "variable_declaration";
     }
 };
 
@@ -96,7 +96,7 @@ class FunctionDeclaration : public Tree
 public:
     FunctionDeclaration(std::string name)
     {
-        tree_type = "function_declaration";
+        type = "function_declaration";
         attr = name;
     }
 };
@@ -106,7 +106,7 @@ class Identifier : public Tree
 public:
     Identifier(std::string id)
     {
-        tree_type = "identifier";
+        type = "identifier";
         attr = id;
     }
 };
@@ -116,7 +116,7 @@ class SemiColon : public Tree
 public:
     SemiColon()
     {
-        tree_type = "semi_colon";
+        type = "semi_colon";
     }
 };
 
@@ -125,7 +125,7 @@ class Void : public Tree
 public:
     Void()
     {
-        tree_type = "void";
+        type = "void";
     }
 };
 
@@ -134,7 +134,7 @@ class Statement : public Tree
 public:
     Statement()
     {
-        tree_type = "statement";
+        type = "statement";
     }
 };
 
@@ -143,7 +143,7 @@ class Break : public Tree
 public:
     Break()
     {
-        tree_type = "break";
+        type = "break";
     }
 };
 
@@ -152,7 +152,7 @@ class Return : public Tree
 public:
     Return()
     {
-        tree_type = "return";
+        type = "return";
     }
 };
 
@@ -161,7 +161,7 @@ class If : public Tree
 public:
     If()
     {
-        tree_type = "if";
+        type = "if";
     }
 };
 
@@ -170,7 +170,7 @@ class Assignment : public Tree
 public:
     Assignment()
     {
-        tree_type = "assignment";
+        type = "assignment";
     }
 };
 
@@ -179,7 +179,7 @@ class Expression : public Tree
 public:
     Expression()
     {
-        tree_type = "expression";
+        type = "expression";
     }
 };
 
@@ -188,7 +188,7 @@ class ArgumentList : public Tree
 public:
     ArgumentList()
     {
-        tree_type = "argument_list";
+        type = "argument_list";
     }
 };
 
@@ -197,7 +197,7 @@ class Primary : public Tree
 public:
     Primary()
     {
-        tree_type = "primary";
+        type = "primary";
     }
 };
 
@@ -206,7 +206,7 @@ class UnaryExpression : public Tree
 public:
     UnaryExpression()
     {
-        tree_type = "unary";
+        type = "unary";
     }
 };
 
@@ -215,7 +215,7 @@ class Minus : public Tree
 public:
     Minus()
     {
-        tree_type = "minus";
+        type = "minus";
     }
 };
 
@@ -224,7 +224,7 @@ class Not : public Tree
 public:
     Not()
     {
-        tree_type = "not";
+        type = "not";
     }
 };
 
@@ -233,7 +233,7 @@ class Multiply : public Tree
 public:
     Multiply()
     {
-        tree_type = "multiply";
+        type = "multiply";
     }
 };
 
@@ -242,7 +242,7 @@ class Divide : public Tree
 public:
     Divide()
     {
-        tree_type = "divide";
+        type = "divide";
     }
 };
 
@@ -251,7 +251,7 @@ class Add : public Tree
 public:
     Add()
     {
-        tree_type = "add";
+        type = "add";
     }
 };
 
@@ -260,7 +260,7 @@ class Modulus : public Tree
 public:
     Modulus()
     {
-        tree_type = "modulus";
+        type = "modulus";
     }
 };
 
@@ -269,7 +269,7 @@ class LessThan : public Tree
 public:
     LessThan()
     {
-        tree_type = "less_than";
+        type = "less_than";
     }
 };
 
@@ -278,7 +278,7 @@ class LessThanEqual : public Tree
 public:
     LessThanEqual()
     {
-        tree_type = "less_than_equal";
+        type = "less_than_equal";
     }
 };
 
@@ -287,7 +287,7 @@ class GreaterThan : public Tree
 public:
     GreaterThan()
     {
-        tree_type = "greater_than";
+        type = "greater_than";
     }
 };
 
@@ -296,7 +296,7 @@ class GreaterThanEqual : public Tree
 public:
     GreaterThanEqual()
     {
-        tree_type = "greater_than_equal";
+        type = "greater_than_equal";
     }
 };
 
@@ -305,7 +305,7 @@ class FunctionInvocation : public Tree
 public:
     FunctionInvocation()
     {
-        tree_type = "function_invocation";
+        type = "function_invocation";
     }
 };
 
@@ -314,7 +314,7 @@ class Equal : public Tree
 public:
     Equal()
     {
-        tree_type = "equal";
+        type = "equal";
     }
 };
 
@@ -323,7 +323,7 @@ class NotEqual : public Tree
 public:
     NotEqual()
     {
-        tree_type = "not_equal";
+        type = "not_equal";
     }
 };
 
@@ -332,7 +332,7 @@ class And : public Tree
 public:
     And()
     {
-        tree_type = "and";
+        type = "and";
     }
 };
 
@@ -341,7 +341,17 @@ class Or : public Tree
 public:
     Or()
     {
-        tree_type = "or";
+        type = "or";
+    }
+};
+
+class Block : public Tree
+{
+public:
+    Block()
+    {
+        type = "block";
+        line_number = -1;
     }
 };
 
@@ -353,7 +363,7 @@ class Empty : public Tree
 public:
     Empty()
     {
-        tree_type = "empty";
+        type = "empty";
     }
 };
 

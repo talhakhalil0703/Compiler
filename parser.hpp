@@ -27,6 +27,7 @@ protected:
 
 private:
     // std::istream *in;
+    void error(std::string m);
     void consumeToken();
 
     Tree start();

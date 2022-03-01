@@ -10,6 +10,16 @@ Tree Parser::parse()
     return start();
 }
 
+void Parser::error(std::string message)
+{
+    std::ostringstream stream;
+    stream << message;
+    stream << ", at or near line: ";
+    stream << scanner->GetLine() << '\n';
+    std::string m = stream.str();
+    error_handler.NonRecoverableError(m);
+}
+
 void Parser::consumeToken()
 {
     lexeme = scanner->GetLexeme();
@@ -101,7 +111,7 @@ void Parser::global_declarations_(Tree &dec)
 {
     Tree gd = Tree();
     gd = global_declaration();
-    if (gd.tree_type != "empty")
+    if (gd.type != "empty")
     {
         dec.branches.push_back(global_declaration());
         global_declarations_(dec);
@@ -113,20 +123,20 @@ Tree Parser::global_declaration()
     Tree dec = Tree();
     dec = variable_declaration();
 
-    if (dec.tree_type != "empty")
+    if (dec.type != "empty")
     {
         return dec;
     }
 
     dec = function_decleration();
     // TODO: Never empty in this case
-    if (dec.tree_type != "empty")
+    if (dec.type != "empty")
     {
         return dec;
     }
 
     dec = main_function_declaration();
-    if (dec.tree_type != "empty")
+    if (dec.type != "empty")
     {
         return dec;
     }
@@ -178,7 +188,7 @@ Tree Parser::function_decleration()
     Tree func_dec = FunctionDeclaration("");
 
     func_dec = function_header();
-    if (func_dec.tree_type == "empty")
+    if (func_dec.type == "empty")
     {
         return Empty();
     }
@@ -291,41 +301,48 @@ void Parser::main_function_declarator(Tree &tree)
         }
         else
         {
-            // TODO: Error expected Right )
+            error("Syntax error, probably missing ), for main function");
         }
     }
     else
     {
+        error("Syntax error, probably missing (, for main function");
         // TODO: Error expected Left (
     }
 }
 
 void Parser::block(Tree &tree)
 {
+    Block block_node = Block();
+
     if (nextToken == Token::T_LEFTBRACE)
     {
         consumeToken();
         if (nextToken == Token::T_RIGHTBRACE)
         {
             consumeToken();
+            tree.branches.push_back(block_node);
         }
         else
         {
 
-            block_statements(tree);
+            block_statements(block_node);
             if (nextToken == Token::T_RIGHTBRACE)
             {
                 consumeToken();
+                tree.branches.push_back(block_node);
             }
             else
             {
                 // TODO: Error expected right }
+                error("Syntax error, probably missing } for block statement");
             }
         }
     }
     else
     {
         // TODO: Error Expected left {
+        error("Syntax error, probably missing { for block statement");
     }
 }
 
@@ -453,6 +470,7 @@ void Parser::statement(Tree &tree)
         break;
     default:
         // TODO: Error invalid statement type given.
+        error("Syntax Error");
         break;
     }
 
@@ -464,12 +482,12 @@ void Parser::statement_expression(Tree &tree)
     Tree temp_tree = Tree();
 
     temp_tree = assignment();
-    if (temp_tree.tree_type == "empty")
+    if (temp_tree.type == "empty")
     {
         temp_tree = function_invocation();
     }
 
-    if (temp_tree.tree_type == "empty")
+    if (temp_tree.type == "empty")
     {
         // TODO: Throw error of incorrect statement type
     }
@@ -576,7 +594,7 @@ Tree Parser::post_fix_expression()
     Tree post = Tree();
     post = primary();
 
-    if (post.tree_type == "empty")
+    if (post.type == "empty")
     {
         post = Tree();
         identifier(post);
@@ -788,7 +806,7 @@ Tree Parser::assignment_expression()
 {
     Tree express = Expression();
     express = assignment();
-    if (express.tree_type == "empty")
+    if (express.type == "empty")
     {
         express = conditional_and_expression();
     }
