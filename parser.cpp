@@ -73,11 +73,11 @@ void Parser::literal(Tree &tree)
     {
     case (Token::T_NUMBER):
         consumeToken();
-        tree.branches.push_back(Number(scanner->GetLexeme()));
+        tree.branches.push_back(Number(lexeme));
         break;
     case (Token::T_STRING):
         consumeToken();
-        tree.branches.push_back(String(scanner->GetLexeme()));
+        tree.branches.push_back(String(lexeme));
         break;
     case (Token::T_TRUE):
         consumeToken();
@@ -838,15 +838,16 @@ Tree Parser::assignment_expression()
 Tree Parser::assignment()
 {
     Tree assignment = Assignment();
+    assignment.line_number = scanner->GetLine();
 
     if (nextToken == Token::T_ID)
     {
-        consumeToken();
-        assignment.branches.push_back(Identifier(scanner->GetLexeme()));
+        identifier(assignment);
         if (nextToken == Token::T_ASSIGN)
         {
             consumeToken();
-            assignment.branches.push_back(assignment_expression());
+            Tree node = assignment_expression();
+            assignment.branches.push_back(node);
             return assignment;
         }
         else

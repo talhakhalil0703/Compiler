@@ -170,7 +170,7 @@ class Assignment : public Tree
 public:
     Assignment()
     {
-        type = "assignment";
+        type = "=";
     }
 };
 
