@@ -1,4 +1,5 @@
 #include "scanner.hpp"
+#include "parser.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -17,18 +18,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    Scanner scanner = Scanner(&file);
-
-    auto lexer = std::make_unique<Scanner>(&file);
-
-    Token tok;
-
-    // Get tokens until EOF
-    while ((tok = lexer->Scan()) != Token::T_EOF)
-    {
-        std::cout << "Line: " << lexer->GetLine() << " Token: "
-                  << getName(tok) << lexer->GetLexeme() << "\n";
-    }
+    auto parser = std::make_unique<Parser>(&file);
+    parser->parse();
 
     return EXIT_SUCCESS;
 }
