@@ -7,8 +7,7 @@ Parser::Parser(std::istream *file)
 
 Tree Parser::parse()
 {
-    tree = start();
-    return tree;
+    return start();
 }
 
 void Parser::consumeToken()
@@ -25,6 +24,7 @@ void Parser::consumeToken()
 Tree Parser::start()
 {
     Tree program = Program();
+    program.line_number = 0;
     consumeToken();
 
     switch (nextToken)
@@ -32,7 +32,8 @@ Tree Parser::start()
     case (Token::T_EOF):
         break;
     default:
-        program.branches.push_back(global_declarations());
+        global_declarations(program);
+        // program.branches.push_back(global_declarations());
         break;
     }
 
@@ -40,7 +41,7 @@ Tree Parser::start()
 }
 
 // Literals , consumes its own token adds onto tree does not return
-void Parser::literal(Tree tree)
+void Parser::literal(Tree &tree)
 {
     Token tok = nextToken;
     switch (tok)
@@ -72,7 +73,7 @@ void Parser::literal(Tree tree)
 }
 
 // Append on type, boolean or int onto tree, consumes token
-void Parser::type(Tree tree)
+void Parser::type(Tree &tree)
 {
     switch (nextToken)
     {
@@ -94,15 +95,14 @@ void Parser::type(Tree tree)
     }
 }
 
-Tree Parser::global_declarations()
+void Parser::global_declarations(Tree &program)
 {
-    Tree dec = Tree();
-    dec.branches.push_back(global_declaration());
-    global_declarations_(dec);
-    return dec;
+    Tree dc = global_declaration();
+    program.branches.push_back(dc);
+    global_declarations_(program);
 }
 
-void Parser::global_declarations_(Tree dec)
+void Parser::global_declarations_(Tree &dec)
 {
     Tree gd = Tree();
     gd = global_declaration();
@@ -141,6 +141,11 @@ Tree Parser::global_declaration()
 
 Tree Parser::variable_declaration()
 {
+    if (nextToken != Token::T_BOOLEAN && nextToken != Token::T_INT)
+    {
+        return Empty();
+    }
+
     Tree var_dec = VariableDeclaration();
 
     type(var_dec);
@@ -161,7 +166,7 @@ Tree Parser::variable_declaration()
 }
 
 // Pushes back an identifier, consumes the token
-void Parser::identifier(Tree tree)
+void Parser::identifier(Tree &tree)
 {
     if (nextToken == Token::T_ID)
     {
@@ -177,7 +182,7 @@ void Parser::identifier(Tree tree)
 // Pushes a full function declartion onto Tree
 Tree Parser::function_decleration()
 {
-    Tree func_dec = FunctionDeclaration();
+    Tree func_dec = FunctionDeclaration("");
 
     func_dec = function_header();
     if (func_dec.tree_type == "empty")
@@ -190,7 +195,7 @@ Tree Parser::function_decleration()
 
 Tree Parser::function_header()
 {
-    Tree func_dec = FunctionDeclaration();
+    Tree func_dec = FunctionDeclaration("");
 
     switch (nextToken)
     {
@@ -213,7 +218,7 @@ Tree Parser::function_header()
     return func_dec;
 }
 
-Tree Parser::function_declarator(Tree func_dec)
+Tree Parser::function_declarator(Tree &func_dec)
 {
     identifier(func_dec);
 
@@ -245,13 +250,13 @@ Tree Parser::function_declarator(Tree func_dec)
     return Empty();
 }
 
-void Parser::formal_parameter_list(Tree func_dec)
+void Parser::formal_parameter_list(Tree &func_dec)
 {
     formal_parameter(func_dec);
     formal_parameter_list_(func_dec);
 }
 
-void Parser::formal_parameter_list_(Tree func_dec)
+void Parser::formal_parameter_list_(Tree &func_dec)
 {
     if (nextToken == Token::T_COMMA)
     {
@@ -261,7 +266,7 @@ void Parser::formal_parameter_list_(Tree func_dec)
     }
 }
 
-void Parser::formal_parameter(Tree func_dec)
+void Parser::formal_parameter(Tree &func_dec)
 {
     type(func_dec);
     identifier(func_dec);
@@ -269,18 +274,19 @@ void Parser::formal_parameter(Tree func_dec)
 
 Tree Parser::main_function_declaration()
 {
-    Tree main = MainDecleration();
+    Tree main = FunctionDeclaration("main");
     if (nextToken != Token::T_ID)
     {
         return Empty();
     }
+    main.line_number = scanner->GetLine();
     main_function_declarator(main);
     block(main);
 
     return main;
 }
 
-void Parser::main_function_declarator(Tree tree)
+void Parser::main_function_declarator(Tree &tree)
 {
     identifier(tree);
     if (nextToken == Token::T_LEFTPARANTHESE)
@@ -301,7 +307,7 @@ void Parser::main_function_declarator(Tree tree)
     }
 }
 
-void Parser::block(Tree tree)
+void Parser::block(Tree &tree)
 {
     if (nextToken == Token::T_LEFTBRACE)
     {
@@ -330,20 +336,20 @@ void Parser::block(Tree tree)
     }
 }
 
-void Parser::block_statements(Tree tree)
+void Parser::block_statements(Tree &tree)
 {
     block_statement(tree);
     block_statements_(tree);
 }
 
-void Parser::block_statements_(Tree tree)
+void Parser::block_statements_(Tree &tree)
 {
     // TODO: needs an if statement here to not get stuck in a infinite loop
     block_statement(tree);
     block_statements_(tree);
 }
 
-void Parser::block_statement(Tree tree)
+void Parser::block_statement(Tree &tree)
 {
     if (nextToken == Token::T_BOOLEAN || nextToken == Token::T_INT)
     {
@@ -355,7 +361,7 @@ void Parser::block_statement(Tree tree)
     }
 }
 
-void Parser::statement(Tree tree)
+void Parser::statement(Tree &tree)
 {
     Tree statement_tree = Statement();
     switch (nextToken)
@@ -460,7 +466,7 @@ void Parser::statement(Tree tree)
     tree.branches.push_back(statement_tree);
 }
 
-void Parser::statement_expression(Tree tree)
+void Parser::statement_expression(Tree &tree)
 {
     Tree temp_tree = Tree();
 
@@ -526,7 +532,7 @@ Tree Parser::argument_list()
     return argument_list;
 }
 
-void Parser::argument_list_(Tree args)
+void Parser::argument_list_(Tree &args)
 {
     if (nextToken == Token::T_COMMA)
     {
@@ -619,7 +625,7 @@ Tree Parser::multiplicative_expression()
     return express;
 }
 
-void Parser::multiplicative_expression_(Tree tree)
+void Parser::multiplicative_expression_(Tree &tree)
 {
     switch (nextToken)
     {
@@ -654,20 +660,20 @@ Tree Parser::additive_expression()
     return express;
 }
 
-void Parser::additive_expression_(Tree express)
+void Parser::additive_expression_(Tree &express)
 {
     switch (nextToken)
     {
     case Token::T_ADD:
         consumeToken();
         express.branches.push_back(Add());
-        tree.branches.push_back(multiplicative_expression());
+        express.branches.push_back(multiplicative_expression());
         additive_expression_(express);
         break;
     case Token::T_MINUS:
         consumeToken();
-        tree.branches.push_back(Minus());
-        tree.branches.push_back(multiplicative_expression());
+        express.branches.push_back(Minus());
+        express.branches.push_back(multiplicative_expression());
         additive_expression_(express);
         break;
     default:
@@ -683,7 +689,7 @@ Tree Parser::relational_expression()
     return express;
 }
 
-void Parser::relational_expression_(Tree express)
+void Parser::relational_expression_(Tree &express)
 {
     switch (nextToken)
     {
@@ -725,7 +731,7 @@ Tree Parser::equality_expression()
     return express;
 }
 
-void Parser::equality_expression_(Tree express)
+void Parser::equality_expression_(Tree &express)
 {
     switch (nextToken)
     {
@@ -754,7 +760,7 @@ Tree Parser::conditional_and_expression()
     return express;
 }
 
-void Parser::conditional_and_expression_(Tree express)
+void Parser::conditional_and_expression_(Tree &express)
 {
     if (nextToken == Token::T_AND)
     {
@@ -774,7 +780,7 @@ Tree Parser::conditional_or_expression()
     return express;
 }
 
-void Parser::conditional_or_expression_(Tree express)
+void Parser::conditional_or_expression_(Tree &express)
 {
     if (nextToken == Token::T_OR)
     {
@@ -825,7 +831,7 @@ Tree Parser::assignment()
     return Empty();
 }
 
-void Parser::expression(Tree tree)
+void Parser::expression(Tree &tree)
 {
 
     // TODO: complete this function

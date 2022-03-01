@@ -22,14 +22,6 @@ public:
     }
 };
 
-class FunctionDecleration : public Tree
-{
-};
-
-class MainDecleration : public Tree
-{
-};
-
 class StatementExpression : public Tree
 {
 };
@@ -102,9 +94,10 @@ public:
 class FunctionDeclaration : public Tree
 {
 public:
-    FunctionDeclaration()
+    FunctionDeclaration(std::string name)
     {
         tree_type = "function_declaration";
+        attr = name;
     }
 };
 
