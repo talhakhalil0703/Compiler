@@ -647,21 +647,28 @@ void Parser::unary_expression(Tree &express)
     if (nextToken == Token::T_MINUS)
     {
         Tree min = Minus();
-        express.branches.push_back(min);
+        min.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        min.branches.push_back(other_node);
         consume_token();
         unary_expression(min);
+        express.branches.push_back(min);
     }
     else if (nextToken == Token::T_NOT)
     {
         Tree no = Not();
-        express.branches.push_back(no);
+        no.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        no.branches.push_back(other_node);
         consume_token();
         unary_expression(no);
+        express.branches.push_back(no);
     }
     else
     {
         post_fix_expression(express);
-        // un.branches.push_back(post_fix_expression());
     }
 
     return;
@@ -669,6 +676,7 @@ void Parser::unary_expression(Tree &express)
 
 void Parser::multiplicative_expression(Tree &express)
 {
+
     unary_expression(express);
     multiplicative_expression_(express);
 }
@@ -678,6 +686,10 @@ void Parser::multiplicative_expression_(Tree &express)
     if (nextToken == Token::T_MULTIPLY)
     {
         Tree multiply = Multiply();
+        multiply.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        multiply.branches.push_back(other_node);
         consume_token();
         unary_expression(multiply);
         multiplicative_expression_(multiply);
@@ -685,8 +697,11 @@ void Parser::multiplicative_expression_(Tree &express)
     }
     else if (nextToken == Token::T_DIVIDE)
     {
-
         Tree divide = Divide();
+        divide.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        divide.branches.push_back(other_node);
         consume_token();
         unary_expression(divide);
         multiplicative_expression_(divide);
@@ -694,15 +709,16 @@ void Parser::multiplicative_expression_(Tree &express)
     }
     else if (nextToken == Token::T_MODULUS)
     {
-
         Tree modulus = Modulus();
+        modulus.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        modulus.branches.push_back(other_node);
         consume_token();
         unary_expression(modulus);
         multiplicative_expression_(modulus);
         express.branches.push_back(modulus);
     }
-
-    return;
 }
 
 void Parser::additive_expression(Tree &express)
@@ -716,6 +732,10 @@ void Parser::additive_expression_(Tree &express)
     if (nextToken == Token::T_ADD)
     {
         Tree add = Add();
+        add.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        add.branches.push_back(other_node);
         consume_token();
         multiplicative_expression(add);
         additive_expression_(add);
@@ -724,6 +744,10 @@ void Parser::additive_expression_(Tree &express)
     else if (nextToken == Token::T_MINUS)
     {
         Tree min = Minus();
+        min.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        min.branches.push_back(other_node);
         consume_token();
         multiplicative_expression(min);
         additive_expression_(min);
@@ -742,6 +766,10 @@ void Parser::relational_expression_(Tree &express)
     if (nextToken == Token::T_LESSTHAN)
     {
         Tree lessthan = LessThan();
+        lessthan.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        lessthan.branches.push_back(other_node);
         consume_token();
         additive_expression(lessthan);
         relational_expression_(lessthan);
@@ -750,6 +778,10 @@ void Parser::relational_expression_(Tree &express)
     else if (nextToken == Token::T_GREATERTHAN)
     {
         Tree greaterthan = GreaterThan();
+        greaterthan.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        greaterthan.branches.push_back(greaterthan);
         consume_token();
         additive_expression(greaterthan);
         relational_expression_(greaterthan);
@@ -758,6 +790,10 @@ void Parser::relational_expression_(Tree &express)
     else if (nextToken == Token::T_LESSTHANEQUAL)
     {
         Tree lessthanequal = LessThanEqual();
+        lessthanequal.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        lessthanequal.branches.push_back(other_node);
         consume_token();
         additive_expression(lessthanequal);
         relational_expression_(lessthanequal);
@@ -766,6 +802,10 @@ void Parser::relational_expression_(Tree &express)
     else if (nextToken == Token::T_GREATERTHANEQUAL)
     {
         Tree greaterthanequal = GreaterThanEqual();
+        greaterthanequal.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        greaterthanequal.branches.push_back(other_node);
         consume_token();
         additive_expression(greaterthanequal);
         relational_expression_(greaterthanequal);
@@ -784,6 +824,10 @@ void Parser::equality_expression_(Tree &express)
     if (nextToken == Token::T_EQUAL)
     {
         Tree equal = Equal();
+        equal.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        equal.branches.push_back(other_node);
         consume_token();
         relational_expression(equal);
         equality_expression_(equal);
@@ -792,6 +836,10 @@ void Parser::equality_expression_(Tree &express)
     else if (nextToken == Token::T_NOTEQUAL)
     {
         Tree notequal = NotEqual();
+        notequal.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        notequal.branches.push_back(other_node);
         consume_token();
         relational_expression(notequal);
         equality_expression_(notequal);
@@ -810,6 +858,10 @@ void Parser::conditional_and_expression_(Tree &express)
     if (nextToken == Token::T_AND)
     {
         Tree and_node = And();
+        and_node.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        and_node.branches.push_back(other_node);
         consume_token();
         equality_expression(and_node);
         conditional_and_expression_(and_node);
@@ -829,6 +881,10 @@ void Parser::conditional_or_expression_(Tree &express)
     if (nextToken == Token::T_OR)
     {
         Tree or_node = Or();
+        or_node.line_number = line_number;
+        Tree other_node = express.branches.back();
+        express.branches.pop_back();
+        or_node.branches.push_back(other_node);
         consume_token();
         conditional_and_expression(or_node);
         conditional_or_expression_(or_node);
