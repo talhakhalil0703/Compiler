@@ -63,14 +63,14 @@ private:
     void statement(Tree &tree);
     void statement_expression(Tree &tree);
 
-    Tree primary();
+    void primary(Tree &tree);
 
     Tree argument_list();
     void argument_list_(Tree &tree);
 
     Tree function_invocation();
 
-    Tree post_fix_expression();
+    void post_fix_expression(Tree &tree);
 
     Tree unary_expression();
 

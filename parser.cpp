@@ -516,25 +516,25 @@ void Parser::statement_expression(Tree &tree)
 }
 
 // Retruns a primary
-Tree Parser::primary()
+void Parser::primary(Tree &express)
 {
     Tree prim = Primary();
     // Checks for literal types
     if (nextToken == Token::T_NUMBER || nextToken == Token::T_STRING || nextToken == Token::T_TRUE || nextToken == Token::T_FALSE)
     {
-        literal(prim);
-        return prim;
+        literal(express);
+        // return prim;
     }
     // Check for (
     else if (nextToken == Token::T_LEFTPARANTHESE)
     {
         consumeToken();
-        expression(prim); // TODO: check how this is done
+        expression(express); // TODO: check how this is done
 
         if (nextToken == Token::T_RIGHTPARANTHESE)
         {
             consumeToken();
-            return prim;
+            // return prim;
         }
         else
         {
@@ -544,15 +544,16 @@ Tree Parser::primary()
     // Check for indentifier, in this case don't consume the token
     else if (nextToken == Token::T_ID)
     {
-        prim.branches.push_back(function_invocation()); // TODO: Check how this works
-        return prim;
+        express.branches.push_back(function_invocation()); // TODO: Check how this works
+        // return prim;
     }
     else
     {
         // TODO: Error incorrect primary type given, what was expected
-        return Empty();
+        // return; Empty();
     }
-    return Empty();
+    return;
+    Empty();
 }
 
 Tree Parser::argument_list()
@@ -607,20 +608,13 @@ Tree Parser::function_invocation()
     return Empty();
 }
 
-Tree Parser::post_fix_expression()
+void Parser::post_fix_expression(Tree &express)
 {
 
     // TODO: Check if its primmary
-    Tree post = Tree();
-    post = primary();
-
-    if (post.type == "empty")
-    {
-        post = Tree();
-        identifier(post);
-    }
-
-    return post;
+    primary(express);
+    identifier(express);
+    // return post;
 }
 
 Tree Parser::unary_expression()
@@ -642,7 +636,8 @@ Tree Parser::unary_expression()
     }
     else
     {
-        un.branches.push_back(post_fix_expression());
+        post_fix_expression(un);
+        // un.branches.push_back(post_fix_expression());
     }
 
     return un;
@@ -863,7 +858,7 @@ void Parser::expression(Tree &tree)
 {
 
     // TODO: complete this function
-    Tree expression_tree = Expression();
-    expression_tree.branches.push_back(assignment_expression());
-    tree.branches.push_back(expression_tree);
+    // Tree expression_tree = Expression();
+    tree.branches.push_back(assignment_expression());
+    // tree.branches.push_back(expression_tree);
 }
