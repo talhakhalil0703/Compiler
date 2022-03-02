@@ -576,7 +576,16 @@ void Parser::primary(Tree &express)
     // Check for indentifier, in this case don't consume the token
     else if (nextToken == Token::T_ID)
     {
-        function_invocation(express);
+        consume_token();
+        if (nextToken == Token::T_LEFTPARANTHESE)
+        {
+            putback_token();
+            function_invocation(express);
+        }
+        else
+        {
+            putback_token();
+        }
     }
 }
 
@@ -629,10 +638,6 @@ void Parser::function_invocation(Tree &tree)
                 }
             }
         }
-        else
-        {
-            // error("Syntax error function call missing )");
-        }
     }
 }
 
@@ -648,9 +653,9 @@ void Parser::unary_expression(Tree &express)
     {
         Tree min = Minus();
         min.line_number = line_number;
-        Tree other_node = express.branches.back();
-        express.branches.pop_back();
-        min.branches.push_back(other_node);
+        // Tree other_node = express.branches.back();
+        // express.branches.pop_back();
+        // min.branches.push_back(other_node);
         consume_token();
         unary_expression(min);
         express.branches.push_back(min);
@@ -659,9 +664,9 @@ void Parser::unary_expression(Tree &express)
     {
         Tree no = Not();
         no.line_number = line_number;
-        Tree other_node = express.branches.back();
-        express.branches.pop_back();
-        no.branches.push_back(other_node);
+        // Tree other_node = express.branches.back();
+        // express.branches.pop_back();
+        // no.branches.push_back(other_node);
         consume_token();
         unary_expression(no);
         express.branches.push_back(no);
@@ -896,23 +901,47 @@ void Parser::conditional_or_expression_(Tree &express)
 // TODO: make this work correctly
 void Parser::assignment(Tree &express)
 {
-    Tree assignment = Assignment();
+    //  if (nextToken == Token::T_AND)
+    // {
+    //     Tree and_node = And();
+    //     and_node.line_number = line_number;
+    //     Tree other_node = express.branches.back();
+    //     express.branches.pop_back();
+    //     and_node.branches.push_back(other_node);
+    //     consume_token();
+    //     equality_expression(and_node);
+    //     conditional_and_expression_(and_node);
+    //     express.branches.push_back(and_node);
+    // }
 
     if (nextToken == Token::T_ID)
     {
-        identifier(assignment);
-        if (nextToken == Token::T_ASSIGN)
-        {
-            assignment.line_number = line_number;
-            consume_token();
-            assignment_expression(assignment);
-        }
-        else
-        {
-            error("Expected an 'assign' token, ");
-        }
-        express.branches.push_back(assignment);
+
+        Tree assign = Assignment();
+        identifier(assign);
+        assign.line_number = line_number;
+        consume_token();
+        assignment_expression(assign);
+        express.branches.push_back(assign);
     }
+
+    // Tree assignment = Assignment();
+
+    // if (nextToken == Token::T_ID)
+    // {
+    //     identifier(assignment);
+    //     if (nextToken == Token::T_ASSIGN)
+    //     {
+    //         assignment.line_number = line_number;
+    //         consume_token();
+    //         assignment_expression(assignment);
+    //     }
+    //     else
+    //     {
+    //         error("Expected an 'assign' token, ");
+    //     }
+    //     express.branches.push_back(assignment);
+    // }
 }
 
 void Parser::assignment_expression(Tree &express)
