@@ -27,8 +27,11 @@ void Parser::scan_all_tokens()
 
     while ((tok = scanner->Scan()) != Token::T_EOF)
     {
-        FullToken ftok = FullToken(tok, scanner->GetLine(), scanner->GetLexeme());
-        all_tokens.push_back(ftok);
+        if (tok != Token::T_COMMENT)
+        {
+            FullToken ftok = FullToken(tok, scanner->GetLine(), scanner->GetLexeme());
+            all_tokens.push_back(ftok);
+        }
     }
 
     FullToken eof = FullToken(tok, scanner->GetLine(), scanner->GetLexeme());
@@ -126,19 +129,21 @@ void Parser::literal(Tree &tree)
 // Append on type, boolean or int onto tree, consumes token
 void Parser::type(Tree &tree)
 {
-    switch (nextToken)
+    if (nextToken == Token::T_BOOLEAN)
     {
-    case (Token::T_BOOLEAN):
-        tree.branches.push_back(Boolean());
+
+        Tree bool_tok = Boolean();
+        bool_tok.line_number = line_number;
+        tree.branches.push_back(bool_tok);
         consume_token();
-        break;
-    case (Token::T_INT):
-        tree.branches.push_back(Int());
+    }
+    else if (nextToken == Token::T_INT)
+    {
+
+        Tree int_tok = Int();
+        int_tok.line_number = line_number;
+        tree.branches.push_back(int_tok);
         consume_token();
-        break;
-    default:
-        error("Expected a type ");
-        break;
     }
 }
 
@@ -305,8 +310,10 @@ void Parser::formal_parameter_list_(Tree &func_dec)
 
 void Parser::formal_parameter(Tree &func_dec)
 {
-    type(func_dec);
-    identifier(func_dec);
+    Tree formal = Formal();
+    type(formal);
+    identifier(formal);
+    func_dec.branches.push_back(formal);
 }
 
 void Parser::main_function_declaration(Tree &tree)
@@ -365,10 +372,6 @@ void Parser::block(Tree &tree)
                 consume_token();
                 tree.branches.push_back(block_node);
             }
-            else
-            {
-                // error("Syntax error, probably missing } for block statement");
-            }
         }
     }
     else
@@ -416,18 +419,18 @@ void Parser::statement(Tree &tree)
     else if (nextToken == Token::T_SEMICOLON)
     {
         // Checking if the statement is a null state
-        putback_token();
-        if (nextToken == Token::T_LEFTBRACE || nextToken == Token::T_RIGHTPARANTHESE || nextToken == Token::T_ELSE)
-        {
-            consume_token();
-            Tree null_statement = NullStatement();
-            null_statement.line_number = line_number;
-            tree.branches.push_back(null_statement);
-        }
-        else
-        {
-            consume_token();
-        }
+        // putback_token();
+        // if (nextToken == Token::T_LEFTBRACE || nextToken == Token::T_RIGHTPARANTHESE || nextToken == Token::T_ELSE)
+        // {
+        //     consume_token();
+        //     Tree null_statement = NullStatement();
+        //     null_statement.line_number = line_number;
+        //     tree.branches.push_back(null_statement);
+        // }
+        // else
+        // {
+        //     consume_token();
+        // }
 
         consume_token();
     }
@@ -901,19 +904,6 @@ void Parser::conditional_or_expression_(Tree &express)
 // TODO: make this work correctly
 void Parser::assignment(Tree &express)
 {
-    //  if (nextToken == Token::T_AND)
-    // {
-    //     Tree and_node = And();
-    //     and_node.line_number = line_number;
-    //     Tree other_node = express.branches.back();
-    //     express.branches.pop_back();
-    //     and_node.branches.push_back(other_node);
-    //     consume_token();
-    //     equality_expression(and_node);
-    //     conditional_and_expression_(and_node);
-    //     express.branches.push_back(and_node);
-    // }
-
     if (nextToken == Token::T_ID)
     {
 
@@ -924,24 +914,6 @@ void Parser::assignment(Tree &express)
         assignment_expression(assign);
         express.branches.push_back(assign);
     }
-
-    // Tree assignment = Assignment();
-
-    // if (nextToken == Token::T_ID)
-    // {
-    //     identifier(assignment);
-    //     if (nextToken == Token::T_ASSIGN)
-    //     {
-    //         assignment.line_number = line_number;
-    //         consume_token();
-    //         assignment_expression(assignment);
-    //     }
-    //     else
-    //     {
-    //         error("Expected an 'assign' token, ");
-    //     }
-    //     express.branches.push_back(assignment);
-    // }
 }
 
 void Parser::assignment_expression(Tree &express)

@@ -27,7 +27,7 @@ public:
         }
         if (attr != "")
         {
-            stream << ", 'attr': " << attr;
+            stream << ", 'attr': '" << attr << "'";
         }
         stream << "}\n";
 
@@ -143,7 +143,7 @@ class Identifier : public Tree
 public:
     Identifier(std::string id)
     {
-        type = "identifier";
+        type = "id";
         attr = id;
     }
 };
@@ -235,6 +235,15 @@ public:
     FormalList()
     {
         type = "formals";
+    }
+};
+
+class Formal : public Tree
+{
+public:
+    Formal()
+    {
+        type = "formal";
     }
 };
 
