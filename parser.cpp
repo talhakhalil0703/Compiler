@@ -656,9 +656,6 @@ void Parser::unary_expression(Tree &express)
     {
         Tree min = Minus();
         min.line_number = line_number;
-        // Tree other_node = express.branches.back();
-        // express.branches.pop_back();
-        // min.branches.push_back(other_node);
         consume_token();
         unary_expression(min);
         express.branches.push_back(min);
@@ -667,9 +664,6 @@ void Parser::unary_expression(Tree &express)
     {
         Tree no = Not();
         no.line_number = line_number;
-        // Tree other_node = express.branches.back();
-        // express.branches.pop_back();
-        // no.branches.push_back(other_node);
         consume_token();
         unary_expression(no);
         express.branches.push_back(no);
@@ -901,7 +895,6 @@ void Parser::conditional_or_expression_(Tree &express)
 }
 
 // Returns a tree node, type empty if it could not make one
-// TODO: make this work correctly
 void Parser::assignment(Tree &express)
 {
     if (nextToken == Token::T_ID)
