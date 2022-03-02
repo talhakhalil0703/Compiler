@@ -1,7 +1,7 @@
 #ifndef TOKEN_HPP
 #define TOKEN_HPP
-
-//Code adapted from what Shankar Ganesh (TA) provided in tutorials
+#include <string>
+// Code adapted from what Shankar Ganesh (TA) provided in tutorials
 
 enum class Token
 {
@@ -125,5 +125,19 @@ inline char const *getName(Token tok)
         return "";
     }
 }
+
+struct FullToken
+{
+    Token tok;
+    int line_number;
+    std::string lexeme;
+
+    FullToken(Token t, int n, std::string s)
+    {
+        tok = t;
+        line_number = n;
+        lexeme = s;
+    }
+};
 
 #endif

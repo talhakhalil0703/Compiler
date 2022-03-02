@@ -7,6 +7,7 @@ Parser::Parser(std::istream *file)
 
 Tree Parser::parse()
 {
+    scan_all_tokens();
     return start();
 }
 
@@ -15,15 +16,41 @@ void Parser::error(std::string message)
     std::ostringstream stream;
     stream << message;
     stream << ", at or near line: ";
-    stream << scanner->GetLine() << '\n';
+    stream << line_number << '\n';
     std::string m = stream.str();
     error_handler.NonRecoverableError(m);
 }
 
-void Parser::consumeToken()
+void Parser::scan_all_tokens()
 {
-    lexeme = scanner->GetLexeme();
-    nextToken = scanner->Scan();
+    Token tok;
+
+    while ((tok = scanner->Scan()) != Token::T_EOF)
+    {
+        FullToken ftok = FullToken(tok, scanner->GetLine(), scanner->GetLexeme());
+        all_tokens.push_back(ftok);
+    }
+
+    FullToken eof = FullToken(tok, scanner->GetLine(), scanner->GetLexeme());
+    all_tokens.push_back(eof);
+}
+
+void Parser::consume_token()
+{
+    current_token_index++;
+    FullToken ftok = all_tokens[current_token_index];
+    nextToken = ftok.tok;
+    lexeme = ftok.lexeme;
+    line_number = ftok.line_number;
+}
+
+void Parser::putback_token()
+{
+    current_token_index--;
+    FullToken ftok = all_tokens[current_token_index];
+    nextToken = ftok.tok;
+    lexeme = ftok.lexeme;
+    line_number = ftok.line_number;
 }
 
 bool Parser::token_in_statement_function(Token tok)
@@ -50,7 +77,7 @@ Tree Parser::start()
 {
     Tree program = Program();
     program.line_number = 0;
-    consumeToken();
+    consume_token();
 
     switch (nextToken)
     {
@@ -58,7 +85,6 @@ Tree Parser::start()
         break;
     default:
         global_declarations(program);
-        // program.branches.push_back(global_declarations());
         break;
     }
 
@@ -72,27 +98,23 @@ void Parser::literal(Tree &tree)
     switch (tok)
     {
     case (Token::T_NUMBER):
-        consumeToken();
+        consume_token();
         tree.branches.push_back(Number(lexeme));
         break;
     case (Token::T_STRING):
-        consumeToken();
+        consume_token();
         tree.branches.push_back(String(lexeme));
         break;
     case (Token::T_TRUE):
-        consumeToken();
+        consume_token();
         tree.branches.push_back(TrueLiteral());
         break;
     case (Token::T_FALSE):
-        consumeToken();
+        consume_token();
         tree.branches.push_back(FalseLiteral());
         break;
     default:
-        std::ostringstream stream;
-        stream << "Expected a literal Token at Line: ";
-        stream << scanner->GetLine() << '\n';
-        std::string m = stream.str();
-        error_handler.NonRecoverableError(m);
+        error("Expected a literal Token");
         break;
     }
 }
@@ -103,91 +125,88 @@ void Parser::type(Tree &tree)
     switch (nextToken)
     {
     case (Token::T_BOOLEAN):
-        consumeToken();
+        consume_token();
         tree.branches.push_back(Boolean());
         break;
     case (Token::T_INT):
-        consumeToken();
+        consume_token();
         tree.branches.push_back(Int());
         break;
     default:
-        std::ostringstream stream;
-        stream << "Expected a type  at Line: ";
-        stream << scanner->GetLine() << '\n';
-        std::string m = stream.str();
-        error_handler.NonRecoverableError(m);
+        error("Expected a type ");
         break;
     }
 }
 
 void Parser::global_declarations(Tree &program)
 {
-    Tree dc = global_declaration();
-    program.branches.push_back(dc);
+    global_declaration(program);
     global_declarations_(program);
 }
 
 void Parser::global_declarations_(Tree &dec)
 {
-    Tree gd = Tree();
-    gd = global_declaration();
-    if (gd.type != "empty")
+    if (nextToken == Token::T_ID || nextToken == Token::T_VOID || nextToken == Token::T_BOOLEAN || nextToken == Token::T_INT)
     {
-        dec.branches.push_back(global_declaration());
+        global_declaration(dec);
         global_declarations_(dec);
     }
 }
 
-Tree Parser::global_declaration()
+void Parser::global_declaration(Tree &tree)
 {
-    Tree dec = Tree();
-    dec = variable_declaration();
-
-    if (dec.type != "empty")
+    if (nextToken == Token::T_ID)
     {
-        return dec;
+        main_function_declaration(tree);
     }
-
-    dec = function_decleration();
-    // TODO: Never empty in this case
-    if (dec.type != "empty")
+    else if (nextToken == Token::T_VOID)
     {
-        return dec;
+        function_decleration(tree);
     }
-
-    dec = main_function_declaration();
-    if (dec.type != "empty")
+    else if (nextToken == Token::T_BOOLEAN || nextToken == Token::T_INT)
     {
-        return dec;
+        // Perform a look ahead to check that the third icon is ;
+        // because that indicates we have a variable declaration
+        //  either have function declaration
+        consume_token();
+        consume_token();
+        if (nextToken == Token::T_SEMICOLON)
+        {
+            putback_token();
+            putback_token();
+            variable_declaration(tree);
+        }
+        else
+        {
+            putback_token();
+            putback_token();
+            function_decleration(tree);
+        }
     }
-
-    return Empty();
 }
 
-Tree Parser::variable_declaration()
+void Parser::variable_declaration(Tree &tree)
 {
-    if (nextToken != Token::T_BOOLEAN && nextToken != Token::T_INT)
+    if (nextToken == Token::T_BOOLEAN || nextToken == Token::T_INT)
     {
-        return Empty();
+        Tree var_dec = VariableDeclaration();
+
+        type(var_dec);
+        identifier(var_dec);
+
+        if (nextToken == Token::T_SEMICOLON)
+        {
+            consume_token();
+            var_dec.branches.push_back(SemiColon());
+        }
+        else
+        {
+            error("Variable declaration missing ;, ");
+        }
+        tree.branches.push_back(var_dec);
     }
 
-    Tree var_dec = VariableDeclaration();
-
-    type(var_dec);
-    identifier(var_dec);
-
-    if (nextToken == Token::T_SEMICOLON)
-    {
-        consumeToken();
-        var_dec.branches.push_back(SemiColon());
-    }
-    else
-    {
-        return Empty();
-        // TODO: Error Statement, expected a semicolon
-    }
-
-    return var_dec;
+    return;
 }
 
 // Pushes back an identifier, consumes the token
@@ -195,30 +214,25 @@ void Parser::identifier(Tree &tree)
 {
     if (nextToken == Token::T_ID)
     {
-        consumeToken();
+        consume_token();
         Identifier id = Identifier(lexeme);
-        id.line_number = scanner->GetLine();
+        id.line_number = line_number;
         tree.branches.push_back(id);
     }
 }
 
 // Pushes a full function declartion onto Tree
-Tree Parser::function_decleration()
+void Parser::function_decleration(Tree &tree)
 {
     Tree func_dec = FunctionDeclaration("");
 
-    func_dec = function_header();
-    if (func_dec.type == "empty")
-    {
-        return Empty();
-    }
+    function_header(func_dec);
     block(func_dec);
-    return func_dec;
+    tree.branches.push_back(func_dec);
 }
 
-Tree Parser::function_header()
+void Parser::function_header(Tree &func_dec)
 {
-    Tree func_dec = FunctionDeclaration("");
 
     switch (nextToken)
     {
@@ -229,48 +243,41 @@ Tree Parser::function_header()
         type(func_dec);
         break;
     case Token::T_VOID:
-        consumeToken();
+        consume_token();
         func_dec.branches.push_back(Void());
         break;
     default:
-        return Empty();
+        return;
         break;
     }
 
     function_declarator(func_dec);
-    return func_dec;
 }
 
-Tree Parser::function_declarator(Tree &func_dec)
+void Parser::function_declarator(Tree &func_dec)
 {
     identifier(func_dec);
 
     if (nextToken == Token::T_LEFTPARANTHESE)
     {
-        consumeToken();
+        consume_token();
         if (nextToken == Token::T_RIGHTPARANTHESE)
         {
-            consumeToken();
-            return func_dec;
+            consume_token();
         }
         else
         {
             formal_parameter_list(func_dec);
             if (nextToken == Token::T_RIGHTPARANTHESE)
             {
-                consumeToken();
-                return func_dec;
-                // } else
-                // TODO: Error expected right parantheses
+                consume_token();
             }
         }
     }
     else
     {
-        return Empty();
-        // TODO: Error expected left parantheses
+        error("Expected left ( for function declaration ");
     }
-    return Empty();
 }
 
 void Parser::formal_parameter_list(Tree &func_dec)
@@ -283,7 +290,7 @@ void Parser::formal_parameter_list_(Tree &func_dec)
 {
     if (nextToken == Token::T_COMMA)
     {
-        consumeToken();
+        consume_token();
         formal_parameter(func_dec);
         formal_parameter_list_(func_dec);
     }
@@ -295,18 +302,17 @@ void Parser::formal_parameter(Tree &func_dec)
     identifier(func_dec);
 }
 
-Tree Parser::main_function_declaration()
+void Parser::main_function_declaration(Tree &tree)
 {
     Tree main = FunctionDeclaration("main");
     if (nextToken != Token::T_ID)
     {
-        return Empty();
+        return;
     }
-    main.line_number = scanner->GetLine();
+    main.line_number = line_number;
     main_function_declarator(main);
     block(main);
-
-    return main;
+    tree.branches.push_back(main);
 }
 
 void Parser::main_function_declarator(Tree &tree)
@@ -314,10 +320,10 @@ void Parser::main_function_declarator(Tree &tree)
     identifier(tree);
     if (nextToken == Token::T_LEFTPARANTHESE)
     {
-        consumeToken();
+        consume_token();
         if (nextToken == Token::T_RIGHTPARANTHESE)
         {
-            consumeToken();
+            consume_token();
         }
         else
         {
@@ -336,10 +342,10 @@ void Parser::block(Tree &tree)
 
     if (nextToken == Token::T_LEFTBRACE)
     {
-        consumeToken();
+        consume_token();
         if (nextToken == Token::T_RIGHTBRACE)
         {
-            consumeToken();
+            consume_token();
             tree.branches.push_back(block_node);
         }
         else
@@ -348,7 +354,7 @@ void Parser::block(Tree &tree)
             block_statements(block_node);
             if (nextToken == Token::T_RIGHTBRACE)
             {
-                consumeToken();
+                consume_token();
                 tree.branches.push_back(block_node);
             }
             else
@@ -382,7 +388,7 @@ void Parser::block_statement(Tree &tree)
 {
     if (nextToken == Token::T_BOOLEAN || nextToken == Token::T_INT)
     {
-        tree.branches.push_back(variable_declaration());
+        variable_declaration(tree);
     }
     else
     {
@@ -399,14 +405,14 @@ void Parser::statement(Tree &tree)
         block(tree);
         break;
     case Token::T_SEMICOLON:
-        consumeToken();
+        consume_token();
         return;
         break;
     case Token::T_ID:
         statement_expression(statement_tree);
         break;
     case Token::T_BREAK:
-        consumeToken();
+        consume_token();
         if (nextToken == Token::T_SEMICOLON)
         {
             statement_tree.branches.push_back(Break());
@@ -417,7 +423,7 @@ void Parser::statement(Tree &tree)
         }
         break;
     case Token::T_RETURN:
-        consumeToken();
+        consume_token();
         if (nextToken == Token::T_SEMICOLON)
         {
             statement_tree.branches.push_back(Return());
@@ -436,20 +442,20 @@ void Parser::statement(Tree &tree)
         }
         break;
     case Token::T_IF:
-        consumeToken();
+        consume_token();
         statement_tree.branches.push_back(If());
 
         if (nextToken == Token::T_LEFTPARANTHESE)
         {
-            consumeToken();
+            consume_token();
             expression(statement_tree);
             if (nextToken == Token::T_RIGHTPARANTHESE)
             {
-                consumeToken();
+                consume_token();
                 statement(statement_tree);
                 if (nextToken == Token::T_ELSE)
                 {
-                    consumeToken();
+                    consume_token();
                     statement(statement_tree);
                 }
                 else
@@ -468,14 +474,14 @@ void Parser::statement(Tree &tree)
         }
         break;
     case Token::T_WHILE:
-        consumeToken();
+        consume_token();
         if (nextToken == Token::T_LEFTPARANTHESE)
         {
-            consumeToken();
+            consume_token();
             expression(statement_tree);
             if (nextToken == Token::T_RIGHTPARANTHESE)
             {
-                consumeToken();
+                consume_token();
                 statement(statement_tree);
             }
             else
@@ -499,8 +505,8 @@ void Parser::statement(Tree &tree)
 
 void Parser::statement_expression(Tree &tree)
 {
-    assignment(tree);
     function_invocation(tree);
+    assignment(tree);
 }
 
 // Retruns a primary
@@ -516,12 +522,12 @@ void Parser::primary(Tree &express)
     // Check for (
     else if (nextToken == Token::T_LEFTPARANTHESE)
     {
-        consumeToken();
+        consume_token();
         expression(express); // TODO: check how this is done
 
         if (nextToken == Token::T_RIGHTPARANTHESE)
         {
-            consumeToken();
+            consume_token();
             // return prim;
         }
         else
@@ -556,7 +562,7 @@ void Parser::argument_list_(Tree &args)
 {
     if (nextToken == Token::T_COMMA)
     {
-        consumeToken();
+        consume_token();
         expression(args);
         argument_list_(args);
     }
@@ -570,10 +576,10 @@ void Parser::function_invocation(Tree &tree)
         identifier(func_inv);
         if (nextToken == Token::T_LEFTPARANTHESE)
         {
-            consumeToken();
+            consume_token();
             if (nextToken == Token::T_RIGHTPARANTHESE)
             {
-                consumeToken();
+                consume_token();
                 tree.branches.push_back(func_inv);
             }
             else
@@ -581,7 +587,7 @@ void Parser::function_invocation(Tree &tree)
                 func_inv.branches.push_back(argument_list());
                 if (nextToken == Token::T_RIGHTPARANTHESE)
                 {
-                    consumeToken();
+                    consume_token();
                     tree.branches.push_back(func_inv);
                 }
                 else
@@ -610,14 +616,14 @@ void Parser::unary_expression(Tree &express)
 {
     if (nextToken == Token::T_MINUS)
     {
-        consumeToken();
+        consume_token();
         Tree min = Minus();
         express.branches.push_back(min);
         unary_expression(min);
     }
     else if (nextToken == Token::T_NOT)
     {
-        consumeToken();
+        consume_token();
         Tree no = Not();
         express.branches.push_back(no);
         unary_expression(no);
@@ -642,7 +648,7 @@ void Parser::multiplicative_expression_(Tree &express)
     if (nextToken == Token::T_MULTIPLY)
     {
 
-        consumeToken();
+        consume_token();
         Tree multiply = Multiply();
         express.branches.push_back(multiply);
         unary_expression(multiply);
@@ -651,7 +657,7 @@ void Parser::multiplicative_expression_(Tree &express)
     else if (nextToken == Token::T_DIVIDE)
     {
 
-        consumeToken();
+        consume_token();
         Tree divide = Divide();
         express.branches.push_back(divide);
         unary_expression(divide);
@@ -660,7 +666,7 @@ void Parser::multiplicative_expression_(Tree &express)
     else if (nextToken == Token::T_MODULUS)
     {
 
-        consumeToken();
+        consume_token();
         Tree modulus = Modulus();
         express.branches.push_back(modulus);
         unary_expression(modulus);
@@ -680,7 +686,7 @@ void Parser::additive_expression_(Tree &express)
 {
     if (nextToken == Token::T_ADD)
     {
-        consumeToken();
+        consume_token();
         Tree add = Add();
         express.branches.push_back(add);
         multiplicative_expression(add);
@@ -688,7 +694,7 @@ void Parser::additive_expression_(Tree &express)
     }
     else if (nextToken == Token::T_MINUS)
     {
-        consumeToken();
+        consume_token();
         Tree min = Minus();
         express.branches.push_back(min);
         multiplicative_expression(min);
@@ -706,7 +712,7 @@ void Parser::relational_expression_(Tree &express)
 {
     if (nextToken == Token::T_LESSTHAN)
     {
-        consumeToken();
+        consume_token();
         Tree lessthan = LessThan();
         express.branches.push_back(lessthan);
         additive_expression(lessthan);
@@ -714,7 +720,7 @@ void Parser::relational_expression_(Tree &express)
     }
     else if (nextToken == Token::T_GREATERTHAN)
     {
-        consumeToken();
+        consume_token();
         Tree greaterthan = GreaterThan();
         express.branches.push_back(greaterthan);
         additive_expression(greaterthan);
@@ -722,7 +728,7 @@ void Parser::relational_expression_(Tree &express)
     }
     else if (nextToken == Token::T_LESSTHANEQUAL)
     {
-        consumeToken();
+        consume_token();
         Tree lessthanequal = LessThanEqual();
         express.branches.push_back(lessthanequal);
         additive_expression(lessthanequal);
@@ -730,7 +736,7 @@ void Parser::relational_expression_(Tree &express)
     }
     else if (nextToken == Token::T_GREATERTHANEQUAL)
     {
-        consumeToken();
+        consume_token();
         Tree greaterthanequal = GreaterThanEqual();
         express.branches.push_back(greaterthanequal);
         additive_expression(greaterthanequal);
@@ -748,7 +754,7 @@ void Parser::equality_expression_(Tree &express)
 {
     if (nextToken == Token::T_EQUAL)
     {
-        consumeToken();
+        consume_token();
         Tree equal = Equal();
         express.branches.push_back(equal);
         relational_expression(equal);
@@ -756,7 +762,7 @@ void Parser::equality_expression_(Tree &express)
     }
     else if (nextToken == Token::T_NOTEQUAL)
     {
-        consumeToken();
+        consume_token();
         Tree notequal = NotEqual();
         express.branches.push_back(notequal);
         relational_expression(notequal);
@@ -774,7 +780,7 @@ void Parser::conditional_and_expression_(Tree &express)
 {
     if (nextToken == Token::T_AND)
     {
-        consumeToken();
+        consume_token();
         Tree and_node = And();
         express.branches.push_back(and_node);
         equality_expression(and_node);
@@ -793,7 +799,7 @@ void Parser::conditional_or_expression_(Tree &express)
 {
     if (nextToken == Token::T_OR)
     {
-        consumeToken();
+        consume_token();
         Tree or_node = Or();
         express.branches.push_back(or_node);
         conditional_and_expression(or_node);
@@ -806,14 +812,14 @@ void Parser::conditional_or_expression_(Tree &express)
 void Parser::assignment(Tree &express)
 {
     Tree assignment = Assignment();
-    assignment.line_number = scanner->GetLine();
+    assignment.line_number = line_number;
 
     if (nextToken == Token::T_ID)
     {
         identifier(assignment);
         if (nextToken == Token::T_ASSIGN)
         {
-            consumeToken();
+            consume_token();
             assignment_expression(assignment);
         }
         else

@@ -12,9 +12,13 @@ public:
 
     std::unique_ptr<Scanner> scanner;
 
+    std::vector<FullToken> all_tokens = {};
+    int current_token_index = -1;
+
     Tree parse();
     Token nextToken;
     std::string lexeme;
+    int line_number;
     // int GetLine() { return line_number; };
     // std::string GetLexeme();
     // Token Scan();
@@ -28,7 +32,14 @@ protected:
 private:
     // std::istream *in;
     void error(std::string m);
-    void consumeToken();
+
+    void scan_all_tokens();
+
+    void consume_token();
+    void putback_token();
+    std::string get_lexeme();
+    int get_line();
+
     bool token_in_statement_function(Token tok);
     Tree start();
 
@@ -38,21 +49,21 @@ private:
 
     void global_declarations(Tree &program);
     void global_declarations_(Tree &tree);
-    Tree global_declaration();
+    void global_declaration(Tree &tree);
 
-    Tree variable_declaration();
+    void variable_declaration(Tree &tree);
 
     void identifier(Tree &tree);
 
-    Tree function_decleration();
-    Tree function_header();
-    Tree function_declarator(Tree &tree);
+    void function_decleration(Tree &tree);
+    void function_header(Tree &tree);
+    void function_declarator(Tree &tree);
 
     void formal_parameter_list(Tree &tree);
     void formal_parameter_list_(Tree &tree);
     void formal_parameter(Tree &tree);
 
-    Tree main_function_declaration();
+    void main_function_declaration(Tree &tree);
     void main_function_declarator(Tree &tree);
 
     void block(Tree &tree);
