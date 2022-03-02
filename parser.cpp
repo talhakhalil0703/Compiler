@@ -372,6 +372,10 @@ void Parser::block(Tree &tree)
                 consume_token();
                 tree.branches.push_back(block_node);
             }
+            else
+            {
+                error("Syntax error, probably missing } for block statement");
+            }
         }
     }
     else
