@@ -215,7 +215,7 @@ class Minus : public Tree
 public:
     Minus()
     {
-        type = "minus";
+        type = "-";
     }
 };
 
@@ -224,7 +224,7 @@ class Not : public Tree
 public:
     Not()
     {
-        type = "not";
+        type = "!";
     }
 };
 

@@ -72,7 +72,7 @@ private:
 
     void post_fix_expression(Tree &tree);
 
-    Tree unary_expression();
+    void unary_expression(Tree &tree);
 
     Tree multiplicative_expression();
     void multiplicative_expression_(Tree &tree);

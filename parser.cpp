@@ -617,36 +617,35 @@ void Parser::post_fix_expression(Tree &express)
     // return post;
 }
 
-Tree Parser::unary_expression()
+void Parser::unary_expression(Tree &express)
 {
-    Tree un = UnaryExpression();
     if (nextToken == Token::T_MINUS)
     {
         consumeToken();
         Tree min = Minus();
-        min.branches.push_back(unary_expression());
-        un.branches.push_back(min);
+        express.branches.push_back(min);
+        unary_expression(min);
     }
     else if (nextToken == Token::T_NOT)
     {
         consumeToken();
         Tree no = Not();
-        no.branches.push_back(unary_expression());
-        un.branches.push_back(no);
+        express.branches.push_back(no);
+        unary_expression(no);
     }
     else
     {
-        post_fix_expression(un);
+        post_fix_expression(express);
         // un.branches.push_back(post_fix_expression());
     }
 
-    return un;
+    return;
 }
 
 Tree Parser::multiplicative_expression()
 {
     Tree express = Expression();
-    express.branches.push_back(unary_expression());
+    unary_expression(express);
     multiplicative_expression_(express);
     return express;
 }
@@ -658,19 +657,19 @@ void Parser::multiplicative_expression_(Tree &tree)
     case Token::T_MULTIPLY:
         consumeToken();
         tree.branches.push_back(Multiply());
-        tree.branches.push_back(unary_expression());
+        unary_expression(tree);
         multiplicative_expression_(tree);
         break;
     case Token::T_DIVIDE:
         consumeToken();
         tree.branches.push_back(Divide());
-        tree.branches.push_back(unary_expression());
+        unary_expression(tree);
         multiplicative_expression_(tree);
         break;
     case Token::T_MODULUS:
         consumeToken();
         tree.branches.push_back(Modulus());
-        tree.branches.push_back(unary_expression());
+        unary_expression(tree);
         multiplicative_expression_(tree);
         break;
     default:
