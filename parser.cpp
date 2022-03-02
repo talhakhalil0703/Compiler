@@ -93,28 +93,33 @@ Tree Parser::start()
 // Literals , consumes its own token adds onto tree does not return
 void Parser::literal(Tree &tree)
 {
-    Token tok = nextToken;
-    switch (tok)
+    if (nextToken == Token::T_NUMBER)
     {
-    case (Token::T_NUMBER):
-        tree.branches.push_back(Number(lexeme));
+        Tree num = Number(lexeme);
+        num.line_number = line_number;
+        tree.branches.push_back(num);
         consume_token();
-        break;
-    case (Token::T_STRING):
-        tree.branches.push_back(String(lexeme));
+    }
+    else if (nextToken == Token::T_STRING)
+    {
+        Tree str = String(lexeme);
+        str.line_number = line_number;
+        tree.branches.push_back(str);
         consume_token();
-        break;
-    case (Token::T_TRUE):
-        tree.branches.push_back(TrueLiteral());
+    }
+    else if (nextToken == Token::T_TRUE)
+    {
+        Tree tr = TrueLiteral();
+        tr.line_number = line_number;
+        tree.branches.push_back(tr);
         consume_token();
-        break;
-    case (Token::T_FALSE):
-        tree.branches.push_back(FalseLiteral());
+    }
+    else if (nextToken == Token::T_FALSE)
+    {
+        Tree fl = FalseLiteral();
+        fl.line_number = line_number;
+        tree.branches.push_back(fl);
         consume_token();
-        break;
-    default:
-        error("Expected a literal Token");
-        break;
     }
 }
 
@@ -195,7 +200,6 @@ void Parser::variable_declaration(Tree &tree)
 
         if (nextToken == Token::T_SEMICOLON)
         {
-            var_dec.branches.push_back(SemiColon());
             consume_token();
         }
         else
@@ -263,6 +267,8 @@ void Parser::function_declarator(Tree &func_dec)
         if (nextToken == Token::T_RIGHTPARANTHESE)
         {
             consume_token();
+            Tree formals = FormalList();
+            func_dec.branches.push_back(formals);
         }
         else
         {
@@ -281,8 +287,10 @@ void Parser::function_declarator(Tree &func_dec)
 
 void Parser::formal_parameter_list(Tree &func_dec)
 {
-    formal_parameter(func_dec);
-    formal_parameter_list_(func_dec);
+    Tree formals = FormalList();
+    formal_parameter(formals);
+    formal_parameter_list_(formals);
+    func_dec.branches.push_back(formals);
 }
 
 void Parser::formal_parameter_list_(Tree &func_dec)
@@ -322,6 +330,8 @@ void Parser::main_function_declarator(Tree &tree)
         consume_token();
         if (nextToken == Token::T_RIGHTPARANTHESE)
         {
+            Tree formals = FormalList();
+            tree.branches.push_back(formals);
             consume_token();
         }
         else
@@ -357,7 +367,7 @@ void Parser::block(Tree &tree)
             }
             else
             {
-                error("Syntax error, probably missing } for block statement");
+                // error("Syntax error, probably missing } for block statement");
             }
         }
     }
@@ -398,19 +408,28 @@ void Parser::statement(Tree &tree)
 {
     Tree statement_tree = Statement();
     statement_tree.line_number = line_number;
-    switch (nextToken)
+
+    if (nextToken == Token::T_LEFTBRACE)
     {
-    case Token::T_LEFTBRACE:
+
         block(tree);
-        break;
-    case Token::T_SEMICOLON:
+    }
+    else if (nextToken == Token::T_SEMICOLON)
+    {
+
+        // Tree null_statement = NullStatement();
+        // null_statement.line_number = line_number;
+        // tree.branches.push_back(null_statement);
         consume_token();
         return;
-        break;
-    case Token::T_ID:
+    }
+    else if (nextToken == Token::T_ID)
+    {
         statement_expression(statement_tree);
-        break;
-    case Token::T_BREAK:
+    }
+    else if (nextToken == Token::T_BREAK)
+    {
+
         consume_token();
         if (nextToken == Token::T_SEMICOLON)
         {
@@ -418,10 +437,12 @@ void Parser::statement(Tree &tree)
         }
         else
         {
-            // TODO: Error Missing semi colon
+            error("Syntax error missing ;");
         }
-        break;
-    case Token::T_RETURN:
+    }
+    else if (nextToken == Token::T_RETURN)
+    {
+
         consume_token();
         if (nextToken == Token::T_SEMICOLON)
         {
@@ -439,40 +460,43 @@ void Parser::statement(Tree &tree)
                 error("Missing ;");
             }
         }
-        break;
-    case Token::T_IF:
+    }
+    else if (nextToken == Token::T_IF)
+    {
+
+        Tree if_token = If();
+        if_token.line_number = line_number;
+        tree.branches.push_back(if_token);
         consume_token();
-        statement_tree.branches.push_back(If());
 
         if (nextToken == Token::T_LEFTPARANTHESE)
         {
             consume_token();
-            expression(statement_tree);
+            expression(if_token);
             if (nextToken == Token::T_RIGHTPARANTHESE)
             {
                 consume_token();
-                statement(statement_tree);
+                statement(if_token);
                 if (nextToken == Token::T_ELSE)
                 {
                     consume_token();
-                    statement(statement_tree);
-                }
-                else
-                {
-                    break;
+                    statement(if_token);
                 }
             }
             else
             {
-                // TODO: Error expected right )
+                error("Syntax error expected )");
             }
         }
         else
         {
-            // TODO: Error expected left (
+            error("Syntax error expected (");
         }
-        break;
-    case Token::T_WHILE:
+        // return;
+    }
+    else if (nextToken == Token::T_WHILE)
+    {
+
         consume_token();
         if (nextToken == Token::T_LEFTPARANTHESE)
         {
@@ -485,18 +509,13 @@ void Parser::statement(Tree &tree)
             }
             else
             {
-                // TODO: Error expected right )
+                error("Syntax error expected )");
             }
         }
         else
         {
-            // TODO: Error expected left (
+            error("Syntax error expected (");
         }
-        break;
-    default:
-        // TODO: Error invalid statement type given.
-        // error("Syntax Error");
-        break;
     }
 
     tree.branches.push_back(statement_tree);
@@ -504,14 +523,22 @@ void Parser::statement(Tree &tree)
 
 void Parser::statement_expression(Tree &tree)
 {
-    function_invocation(tree);
-    assignment(tree);
+    consume_token();
+    if (nextToken == Token::T_ASSIGN)
+    {
+        putback_token();
+        assignment(tree);
+    }
+    else
+    {
+        putback_token();
+        function_invocation(tree);
+    }
 }
 
 // Retruns a primary
 void Parser::primary(Tree &express)
 {
-    Tree prim = Primary();
     // Checks for literal types
     if (nextToken == Token::T_NUMBER || nextToken == Token::T_STRING || nextToken == Token::T_TRUE || nextToken == Token::T_FALSE)
     {
@@ -539,12 +566,12 @@ void Parser::primary(Tree &express)
     }
 }
 
-Tree Parser::argument_list()
+void Parser::argument_list(Tree &func_inv)
 {
     Tree argument_list = ArgumentList();
     expression(argument_list);
     argument_list_(argument_list);
-    return argument_list;
+    func_inv.branches.push_back(argument_list);
 }
 
 void Parser::argument_list_(Tree &args)
@@ -570,11 +597,13 @@ void Parser::function_invocation(Tree &tree)
             if (nextToken == Token::T_RIGHTPARANTHESE)
             {
                 consume_token();
+                Tree argument_list = ArgumentList();
+                func_inv.branches.push_back(argument_list);
                 tree.branches.push_back(func_inv);
             }
             else
             {
-                func_inv.branches.push_back(argument_list());
+                argument_list(func_inv);
                 if (nextToken == Token::T_RIGHTPARANTHESE)
                 {
                     consume_token();
@@ -588,18 +617,15 @@ void Parser::function_invocation(Tree &tree)
         }
         else
         {
-            error("Syntax error function call missing ), ");
+            // error("Syntax error function call missing )");
         }
     }
 }
 
 void Parser::post_fix_expression(Tree &express)
 {
-
-    // TODO: Check if its primmary
     primary(express);
     identifier(express);
-    // return post;
 }
 
 void Parser::unary_expression(Tree &express)

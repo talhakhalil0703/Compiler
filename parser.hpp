@@ -76,7 +76,7 @@ private:
 
     void primary(Tree &tree);
 
-    Tree argument_list();
+    void argument_list(Tree &tree);
     void argument_list_(Tree &tree);
 
     void function_invocation(Tree &tree);

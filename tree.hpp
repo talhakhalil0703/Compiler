@@ -148,15 +148,6 @@ public:
     }
 };
 
-class SemiColon : public Tree
-{
-public:
-    SemiColon()
-    {
-        type = "semi_colon";
-    }
-};
-
 class Void : public Tree
 {
 public:
@@ -172,6 +163,15 @@ public:
     Statement()
     {
         type = "statement";
+    }
+};
+
+class NullStatement : public Tree
+{
+public:
+    NullStatement()
+    {
+        type = "null_statement";
     }
 };
 
@@ -211,39 +211,21 @@ public:
     }
 };
 
-class Expression : public Tree
-{
-public:
-    Expression()
-    {
-        type = "expression";
-    }
-};
-
 class ArgumentList : public Tree
 {
 public:
     ArgumentList()
     {
-        type = "argument_list";
+        type = "actuals";
     }
 };
 
-class Primary : public Tree
+class FormalList : public Tree
 {
 public:
-    Primary()
+    FormalList()
     {
-        type = "primary";
-    }
-};
-
-class UnaryExpression : public Tree
-{
-public:
-    UnaryExpression()
-    {
-        type = "unary";
+        type = "formals";
     }
 };
 
