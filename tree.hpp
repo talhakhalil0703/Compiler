@@ -9,7 +9,7 @@ class Tree
 public:
     std::vector<Tree> branches = {};
     int line_number = -1; // Value of -1 indicates that this is garbage
-    std::string attr;
+    std::string attr;     // "" indicates it has no attribute
     std::string type;
 
     void print(int tab_amount)
@@ -202,6 +202,15 @@ public:
     }
 };
 
+class IfElse : public Tree
+{
+public:
+    IfElse()
+    {
+        type = "if_else";
+    }
+};
+
 class Assignment : public Tree
 {
 public:
@@ -370,19 +379,6 @@ public:
     Block()
     {
         type = "block";
-        line_number = -1;
-    }
-};
-
-// Used for error checking because do not want to deal with null types
-// We can instead compare and check the type property to determine if
-// the node is empty
-class Empty : public Tree
-{
-public:
-    Empty()
-    {
-        type = "empty";
     }
 };
 

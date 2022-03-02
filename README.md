@@ -30,6 +30,8 @@ Compiler usage: main [filename]
 17. Ensures function foo can be called and defined
 18. Ensures hanging if statements are handled correctly
 19. Ensures precedence is handled correctly
+20. Ensures basic if statement functionality
+21. Ensures basic if else statement functionality
 
 ### Grammar of J-- Specification
 
