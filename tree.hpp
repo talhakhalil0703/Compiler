@@ -233,7 +233,7 @@ class Multiply : public Tree
 public:
     Multiply()
     {
-        type = "multiply";
+        type = "*";
     }
 };
 
@@ -242,7 +242,7 @@ class Divide : public Tree
 public:
     Divide()
     {
-        type = "divide";
+        type = "/";
     }
 };
 
@@ -251,7 +251,7 @@ class Add : public Tree
 public:
     Add()
     {
-        type = "add";
+        type = "+";
     }
 };
 
@@ -260,7 +260,7 @@ class Modulus : public Tree
 public:
     Modulus()
     {
-        type = "modulus";
+        type = "%";
     }
 };
 
@@ -269,7 +269,7 @@ class LessThan : public Tree
 public:
     LessThan()
     {
-        type = "less_than";
+        type = "<";
     }
 };
 
@@ -278,7 +278,7 @@ class LessThanEqual : public Tree
 public:
     LessThanEqual()
     {
-        type = "less_than_equal";
+        type = "<=";
     }
 };
 
@@ -287,7 +287,7 @@ class GreaterThan : public Tree
 public:
     GreaterThan()
     {
-        type = "greater_than";
+        type = ">";
     }
 };
 
@@ -296,7 +296,7 @@ class GreaterThanEqual : public Tree
 public:
     GreaterThanEqual()
     {
-        type = "greater_than_equal";
+        type = ">=";
     }
 };
 
@@ -305,7 +305,7 @@ class FunctionInvocation : public Tree
 public:
     FunctionInvocation()
     {
-        type = "function_invocation";
+        type = "function_call";
     }
 };
 
@@ -314,7 +314,7 @@ class Equal : public Tree
 public:
     Equal()
     {
-        type = "equal";
+        type = "==";
     }
 };
 
@@ -323,7 +323,7 @@ class NotEqual : public Tree
 public:
     NotEqual()
     {
-        type = "not_equal";
+        type = "!=";
     }
 };
 
@@ -332,7 +332,7 @@ class And : public Tree
 public:
     And()
     {
-        type = "and";
+        type = "AND";
     }
 };
 
@@ -341,7 +341,7 @@ class Or : public Tree
 public:
     Or()
     {
-        type = "or";
+        type = "OR";
     }
 };
 

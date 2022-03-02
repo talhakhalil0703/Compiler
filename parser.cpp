@@ -499,20 +499,8 @@ void Parser::statement(Tree &tree)
 
 void Parser::statement_expression(Tree &tree)
 {
-    Tree temp_tree = Tree();
-
-    temp_tree = assignment();
-    if (temp_tree.type == "empty")
-    {
-        temp_tree = function_invocation();
-    }
-
-    if (temp_tree.type == "empty")
-    {
-        // TODO: Throw error of incorrect statement type
-    }
-
-    tree.branches.push_back(temp_tree);
+    assignment(tree);
+    function_invocation(tree);
 }
 
 // Retruns a primary
@@ -544,7 +532,7 @@ void Parser::primary(Tree &express)
     // Check for indentifier, in this case don't consume the token
     else if (nextToken == Token::T_ID)
     {
-        express.branches.push_back(function_invocation()); // TODO: Check how this works
+        function_invocation(express); // TODO: Check how this works
         // return prim;
     }
     else
@@ -574,38 +562,39 @@ void Parser::argument_list_(Tree &args)
     }
 }
 
-Tree Parser::function_invocation()
+void Parser::function_invocation(Tree &tree)
 {
     Tree func_inv = FunctionInvocation();
-    identifier(func_inv);
-    if (nextToken == Token::T_LEFTPARANTHESE)
+    if (nextToken == Token::T_ID)
     {
-        consumeToken();
-        if (nextToken == Token::T_RIGHTPARANTHESE)
+        identifier(func_inv);
+        if (nextToken == Token::T_LEFTPARANTHESE)
         {
             consumeToken();
-            return func_inv;
-        }
-        else
-        {
-            func_inv.branches.push_back(argument_list());
             if (nextToken == Token::T_RIGHTPARANTHESE)
             {
                 consumeToken();
-                return func_inv;
+                tree.branches.push_back(func_inv);
             }
             else
             {
-                // TODO: Error missing left )
+                func_inv.branches.push_back(argument_list());
+                if (nextToken == Token::T_RIGHTPARANTHESE)
+                {
+                    consumeToken();
+                    tree.branches.push_back(func_inv);
+                }
+                else
+                {
+                    error("Syntax error function call missing (, ");
+                }
             }
         }
+        else
+        {
+            error("Syntax error function call missing ), ");
+        }
     }
-    else
-    {
-        // TODO: Error missing left (
-    }
-
-    return Empty();
 }
 
 void Parser::post_fix_expression(Tree &express)
@@ -642,147 +631,143 @@ void Parser::unary_expression(Tree &express)
     return;
 }
 
-Tree Parser::multiplicative_expression()
+void Parser::multiplicative_expression(Tree &express)
 {
-    Tree express = Expression();
     unary_expression(express);
     multiplicative_expression_(express);
-    return express;
 }
 
-void Parser::multiplicative_expression_(Tree &tree)
+void Parser::multiplicative_expression_(Tree &express)
 {
-    switch (nextToken)
+    if (nextToken == Token::T_MULTIPLY)
     {
-    case Token::T_MULTIPLY:
+
         consumeToken();
-        tree.branches.push_back(Multiply());
-        unary_expression(tree);
-        multiplicative_expression_(tree);
-        break;
-    case Token::T_DIVIDE:
-        consumeToken();
-        tree.branches.push_back(Divide());
-        unary_expression(tree);
-        multiplicative_expression_(tree);
-        break;
-    case Token::T_MODULUS:
-        consumeToken();
-        tree.branches.push_back(Modulus());
-        unary_expression(tree);
-        multiplicative_expression_(tree);
-        break;
-    default:
-        break;
+        Tree multiply = Multiply();
+        express.branches.push_back(multiply);
+        unary_expression(multiply);
+        multiplicative_expression_(multiply);
     }
+    else if (nextToken == Token::T_DIVIDE)
+    {
+
+        consumeToken();
+        Tree divide = Divide();
+        express.branches.push_back(divide);
+        unary_expression(divide);
+        multiplicative_expression_(divide);
+    }
+    else if (nextToken == Token::T_MODULUS)
+    {
+
+        consumeToken();
+        Tree modulus = Modulus();
+        express.branches.push_back(modulus);
+        unary_expression(modulus);
+        multiplicative_expression_(modulus);
+    }
+
+    return;
 }
 
-Tree Parser::additive_expression()
+void Parser::additive_expression(Tree &express)
 {
-    Tree express = Expression();
-    express.branches.push_back(multiplicative_expression());
+    multiplicative_expression(express);
     additive_expression_(express);
-    return express;
 }
 
 void Parser::additive_expression_(Tree &express)
 {
-    switch (nextToken)
+    if (nextToken == Token::T_ADD)
     {
-    case Token::T_ADD:
         consumeToken();
-        express.branches.push_back(Add());
-        express.branches.push_back(multiplicative_expression());
-        additive_expression_(express);
-        break;
-    case Token::T_MINUS:
+        Tree add = Add();
+        express.branches.push_back(add);
+        multiplicative_expression(add);
+        additive_expression_(add);
+    }
+    else if (nextToken == Token::T_MINUS)
+    {
         consumeToken();
-        express.branches.push_back(Minus());
-        express.branches.push_back(multiplicative_expression());
-        additive_expression_(express);
-        break;
-    default:
-        break;
+        Tree min = Minus();
+        express.branches.push_back(min);
+        multiplicative_expression(min);
+        additive_expression_(min);
     }
 }
 
-Tree Parser::relational_expression()
+void Parser::relational_expression(Tree &express)
 {
-    Tree express = Expression();
-    express.branches.push_back(additive_expression());
+    additive_expression(express);
     relational_expression_(express);
-    return express;
 }
 
 void Parser::relational_expression_(Tree &express)
 {
-    switch (nextToken)
+    if (nextToken == Token::T_LESSTHAN)
     {
-    case Token::T_LESSTHAN:
         consumeToken();
-        express.branches.push_back(LessThan());
-        express.branches.push_back(additive_expression());
-        relational_expression_(express);
-        break;
-    case Token::T_GREATERTHAN:
+        Tree lessthan = LessThan();
+        express.branches.push_back(lessthan);
+        additive_expression(lessthan);
+        relational_expression_(lessthan);
+    }
+    else if (nextToken == Token::T_GREATERTHAN)
+    {
         consumeToken();
-        express.branches.push_back(GreaterThan());
-        express.branches.push_back(additive_expression());
-        relational_expression_(express);
-        break;
-    case Token::T_LESSTHANEQUAL:
+        Tree greaterthan = GreaterThan();
+        express.branches.push_back(greaterthan);
+        additive_expression(greaterthan);
+        relational_expression_(greaterthan);
+    }
+    else if (nextToken == Token::T_LESSTHANEQUAL)
+    {
         consumeToken();
-        express.branches.push_back(LessThanEqual());
-        express.branches.push_back(additive_expression());
-        relational_expression_(express);
-        break;
-    case Token::T_GREATERTHANEQUAL:
+        Tree lessthanequal = LessThanEqual();
+        express.branches.push_back(lessthanequal);
+        additive_expression(lessthanequal);
+        relational_expression_(lessthanequal);
+    }
+    else if (nextToken == Token::T_GREATERTHANEQUAL)
+    {
         consumeToken();
-        express.branches.push_back(GreaterThanEqual());
-        express.branches.push_back(additive_expression());
-        relational_expression_(express);
-        break;
-
-    default:
-        break;
+        Tree greaterthanequal = GreaterThanEqual();
+        express.branches.push_back(greaterthanequal);
+        additive_expression(greaterthanequal);
+        relational_expression_(greaterthanequal);
     }
 }
 
-Tree Parser::equality_expression()
+void Parser::equality_expression(Tree &express)
 {
-    Tree express = Expression();
-    express.branches.push_back(relational_expression());
+    relational_expression(express);
     equality_expression_(express);
-    return express;
 }
 
 void Parser::equality_expression_(Tree &express)
 {
-    switch (nextToken)
+    if (nextToken == Token::T_EQUAL)
     {
-    case Token::T_EQUAL:
         consumeToken();
-        express.branches.push_back(Equal());
-        express.branches.push_back(relational_expression());
-        equality_expression_(express);
-        break;
-    case Token::T_NOTEQUAL:
+        Tree equal = Equal();
+        express.branches.push_back(equal);
+        relational_expression(equal);
+        equality_expression_(equal);
+    }
+    else if (nextToken == Token::T_NOTEQUAL)
+    {
         consumeToken();
-        express.branches.push_back(NotEqual());
-        express.branches.push_back(relational_expression());
-        equality_expression_(express);
-        break;
-    default:
-        break;
+        Tree notequal = NotEqual();
+        express.branches.push_back(notequal);
+        relational_expression(notequal);
+        equality_expression_(notequal);
     }
 }
 
-Tree Parser::conditional_and_expression()
+void Parser::conditional_and_expression(Tree &express)
 {
-    Tree express = Expression();
-    express.branches.push_back(equality_expression());
+    equality_expression(express);
     conditional_and_expression_(express);
-    return express;
 }
 
 void Parser::conditional_and_expression_(Tree &express)
@@ -790,19 +775,18 @@ void Parser::conditional_and_expression_(Tree &express)
     if (nextToken == Token::T_AND)
     {
         consumeToken();
-        express.branches.push_back(And());
-        express.branches.push_back(equality_expression());
-        conditional_and_expression_(express);
+        Tree and_node = And();
+        express.branches.push_back(and_node);
+        equality_expression(and_node);
+        conditional_and_expression_(and_node);
     }
-    return;
 }
 
-Tree Parser::conditional_or_expression()
+void Parser::conditional_or_expression(Tree &express)
 {
-    Tree express = Expression();
-    express.branches.push_back(conditional_and_expression());
+
+    conditional_and_expression(express);
     conditional_or_expression_(express);
-    return express;
 }
 
 void Parser::conditional_or_expression_(Tree &express)
@@ -810,26 +794,16 @@ void Parser::conditional_or_expression_(Tree &express)
     if (nextToken == Token::T_OR)
     {
         consumeToken();
-        express.branches.push_back(Or());
-        express.branches.push_back(conditional_and_expression());
-        conditional_or_expression_(express);
+        Tree or_node = Or();
+        express.branches.push_back(or_node);
+        conditional_and_expression(or_node);
+        conditional_or_expression_(or_node);
     }
-}
-
-Tree Parser::assignment_expression()
-{
-    Tree express = Expression();
-    express = assignment();
-    if (express.type == "empty")
-    {
-        express = conditional_and_expression();
-    }
-    return express;
 }
 
 // Returns a tree node, type empty if it could not make one
 // TODO: make this work correctly
-Tree Parser::assignment()
+void Parser::assignment(Tree &express)
 {
     Tree assignment = Assignment();
     assignment.line_number = scanner->GetLine();
@@ -840,17 +814,20 @@ Tree Parser::assignment()
         if (nextToken == Token::T_ASSIGN)
         {
             consumeToken();
-            Tree node = assignment_expression();
-            assignment.branches.push_back(node);
-            return assignment;
+            assignment_expression(assignment);
         }
         else
         {
             error("Expected an 'assign' token, ");
         }
+        express.branches.push_back(assignment);
     }
+}
 
-    return Empty();
+void Parser::assignment_expression(Tree &express)
+{
+    conditional_or_expression(express);
+    assignment(express);
 }
 
 void Parser::expression(Tree &tree)
@@ -858,6 +835,6 @@ void Parser::expression(Tree &tree)
 
     // TODO: complete this function
     // Tree expression_tree = Expression();
-    tree.branches.push_back(assignment_expression());
+    assignment_expression(tree);
     // tree.branches.push_back(expression_tree);
 }

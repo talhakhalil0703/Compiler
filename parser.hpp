@@ -68,32 +68,32 @@ private:
     Tree argument_list();
     void argument_list_(Tree &tree);
 
-    Tree function_invocation();
+    void function_invocation(Tree &tree);
 
     void post_fix_expression(Tree &tree);
 
     void unary_expression(Tree &tree);
 
-    Tree multiplicative_expression();
+    void multiplicative_expression(Tree &tree);
     void multiplicative_expression_(Tree &tree);
 
-    Tree additive_expression();
+    void additive_expression(Tree &tree);
     void additive_expression_(Tree &tree);
 
-    Tree relational_expression();
+    void relational_expression(Tree &tree);
     void relational_expression_(Tree &tree);
 
-    Tree equality_expression();
+    void equality_expression(Tree &tree);
     void equality_expression_(Tree &tree);
 
-    Tree conditional_and_expression();
+    void conditional_and_expression(Tree &tree);
     void conditional_and_expression_(Tree &tree);
 
-    Tree conditional_or_expression();
+    void conditional_or_expression(Tree &tree);
     void conditional_or_expression_(Tree &tree);
 
-    Tree assignment_expression();
-    Tree assignment();
+    void assignment_expression(Tree &tree);
+    void assignment(Tree &tree);
     void expression(Tree &tree);
 };
 
