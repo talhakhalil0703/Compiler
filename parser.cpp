@@ -224,7 +224,7 @@ void Parser::identifier(Tree &tree)
 // Pushes a full function declartion onto Tree
 void Parser::function_decleration(Tree &tree)
 {
-    Tree func_dec = FunctionDeclaration("");
+    Tree func_dec = FunctionDeclaration();
 
     function_header(func_dec);
     block(func_dec);
@@ -304,7 +304,7 @@ void Parser::formal_parameter(Tree &func_dec)
 
 void Parser::main_function_declaration(Tree &tree)
 {
-    Tree main = FunctionDeclaration("main");
+    Tree main = MainDeclaration();
     if (nextToken != Token::T_ID)
     {
         return;

@@ -1,6 +1,6 @@
 #include "scanner.hpp"
 #include "parser.hpp"
-
+#include "tree.hpp"
 int main(int argc, char *argv[])
 {
     std::fstream file;
@@ -19,7 +19,8 @@ int main(int argc, char *argv[])
     }
 
     auto parser = std::make_unique<Parser>(&file);
-    parser->parse();
+    Tree program = parser->parse();
+    program.print(0);
 
     return EXIT_SUCCESS;
 }

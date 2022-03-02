@@ -2,6 +2,8 @@
 #define TREE
 #include <vector>
 #include <string>
+#include <iostream>
+#include <sstream>
 class Tree
 {
 public:
@@ -9,6 +11,33 @@ public:
     int line_number; // Value of -1 indicates that this is garbage
     std::string attr;
     std::string type;
+
+    void print(int tab_amount)
+    {
+        std::ostringstream stream;
+        for (int i = 0; i < tab_amount; i++)
+        {
+            stream << "\t";
+        }
+        stream << type << " { 'type': "
+               << "'" << type << "'";
+        if (line_number != -1)
+        {
+            stream << ", 'lineno': " << line_number;
+        }
+        if (attr != "")
+        {
+            stream << ", 'attr': " << attr;
+        }
+        stream << "}\n";
+
+        std::cout << stream.str();
+
+        for (uint i = 0; i < branches.size(); i++)
+        {
+            branches[i].print(tab_amount + 1);
+        }
+    }
 
 protected:
 };
@@ -94,10 +123,18 @@ public:
 class FunctionDeclaration : public Tree
 {
 public:
-    FunctionDeclaration(std::string name)
+    FunctionDeclaration()
     {
         type = "function_declaration";
-        attr = name;
+    }
+};
+
+class MainDeclaration : public Tree
+{
+public:
+    MainDeclaration()
+    {
+        type = "main_declaration";
     }
 };
 
