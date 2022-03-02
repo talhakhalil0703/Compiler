@@ -8,7 +8,7 @@ class Tree
 {
 public:
     std::vector<Tree> branches = {};
-    int line_number; // Value of -1 indicates that this is garbage
+    int line_number = -1; // Value of -1 indicates that this is garbage
     std::string attr;
     std::string type;
 

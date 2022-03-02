@@ -76,7 +76,6 @@ bool Parser::token_in_statement_function(Token tok)
 Tree Parser::start()
 {
     Tree program = Program();
-    program.line_number = 0;
     consume_token();
 
     switch (nextToken)
@@ -398,6 +397,7 @@ void Parser::block_statement(Tree &tree)
 void Parser::statement(Tree &tree)
 {
     Tree statement_tree = Statement();
+    statement_tree.line_number = line_number;
     switch (nextToken)
     {
     case Token::T_LEFTBRACE:
@@ -560,6 +560,7 @@ void Parser::argument_list_(Tree &args)
 void Parser::function_invocation(Tree &tree)
 {
     Tree func_inv = FunctionInvocation();
+    func_inv.line_number = line_number;
     if (nextToken == Token::T_ID)
     {
         identifier(func_inv);
