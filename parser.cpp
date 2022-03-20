@@ -326,11 +326,14 @@ void Parser::main_function_declaration(Tree &tree)
     main.line_number = line_number;
     main_function_declarator(main);
     block(main);
+
     tree.branches.push_back(main);
 }
 
 void Parser::main_function_declarator(Tree &tree)
 {
+    Tree void_declaration_for_main = Void();
+    tree.branches.push_back(void_declaration_for_main);
     identifier(tree);
     if (nextToken == Token::T_LEFTPARANTHESE)
     {
