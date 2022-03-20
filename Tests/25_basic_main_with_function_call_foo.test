@@ -2,11 +2,14 @@ int j;
 
 main (){
     int x;
-    x = foo();
+    int g;
+    g = 6;
+    x = foo(6);
 }
 
-int foo (){
+int foo (int y){
     int x;
-    x = 5;
+    x = 5 + y;
+    x = x + j;
     return x;
 }
