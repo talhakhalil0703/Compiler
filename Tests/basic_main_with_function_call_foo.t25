@@ -4,6 +4,7 @@ main (){
 }
 
 int foo (){
-    int x = 5;
+    int x;
+    x = 5;
     return x;
 }
