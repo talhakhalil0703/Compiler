@@ -1,0 +1,8 @@
+main (){
+    int x = foo();
+}
+
+int foo (){
+    int x = 5;
+    return x;
+}

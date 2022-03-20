@@ -32,6 +32,12 @@ Compiler usage: main [filename]
 19. Ensures precedence is handled correctly
 20. Ensures basic if statement functionality
 21. Ensures basic if else statement functionality
+22. Ensures multiple subtractions are handled correctly
+23. Ensures simple subtraction works
+24. Ensures the fibonacci sequence can be parsed correctly
+
+### Semantic Tests
+25. Basic main with function call foo
 
 ### Grammar of J-- Specification
 
