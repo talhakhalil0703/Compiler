@@ -31,28 +31,29 @@ void Semantic::global_declarations()
         {
             // Create entry here, must put into table
             SymbolEntry entry = SymbolEntry();
+            std::string name = get_name(global_decs[i]);
 
             if (global_decs[i].type == "global_variable_declaration")
             {
                 entry.kind = Kind::global_var;
+                entry.type = get_type(global_decs[i]);
             }
             else if (global_decs[i].type == "main_declaration")
             {
                 entry.kind = Kind::func;
+                entry.type = get_type(global_decs[i], true);
             }
             else if (global_decs[i].type == "function_declaration")
             {
                 entry.kind = Kind::func;
+                entry.type = get_type(global_decs[i], true);
             }
             else
             {
                 // something isn't right here, our program shouldn't put us here
             }
 
-            std::string name = get_name(global_decs[i]);
-            std::string type_string = get_type(global_decs[i]);
             entry.name = name;
-            entry.type = type_string;
 
             table.enteries.insert(std::make_pair(name, entry));
         }
@@ -77,8 +78,31 @@ std::string Semantic::get_name(Tree &node)
 std::string Semantic::get_type(Tree &node, bool is_function)
 {
     // TODO: FOR NOW WE DO NOT HANDLE ARGUMENTS
-    std::string type_string;
+    std::ostringstream type_string;
 
+    if (is_function)
+    {
+        for (uint j = 0; j < node.branches.size(); j++)
+        {
+            if (node.branches[j].type != "formals")
+            {
+                continue;
+            }
+            std::vector<Tree> &arguments_node = node.branches[j].branches;
+            for (uint i = 0; i < arguments_node.size(); i++)
+            {
+                type_string << get_type(arguments_node[i]);
+                if (i != (arguments_node.size() - 1))
+                {
+                    type_string << ", ";
+                }
+                else
+                {
+                    type_string << "->";
+                }
+            }
+        }
+    }
     // Potential types are void, boolean, and int
     // Ignore string case for now, because techincally that is not a type
 
@@ -88,10 +112,10 @@ std::string Semantic::get_type(Tree &node, bool is_function)
         {
             continue;
         }
-        type_string = node.branches[j].type;
+        type_string << node.branches[j].type;
     }
 
-    return type_string;
+    return type_string.str();
     // If we have a function then it must have a return and argument type
     // Arguments should be split using ,
     // Parameters vs Return should be seperated using args -> return
