@@ -51,7 +51,9 @@ private:
     void global_declarations_(Tree &tree);
     void global_declaration(Tree &tree);
 
-    void variable_declaration(Tree &tree);
+    // If the variable is a global declaration then the tree node made is of
+    // type global
+    void variable_declaration(Tree &tree, bool is_global = false);
 
     void identifier(Tree &tree);
 

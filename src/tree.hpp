@@ -111,6 +111,15 @@ public:
     }
 };
 
+class GlobalVariableDeclaration : public Tree
+{
+public:
+    GlobalVariableDeclaration()
+    {
+        type = "global_variable_declaration";
+    }
+};
+
 class VariableDeclaration : public Tree
 {
 public:

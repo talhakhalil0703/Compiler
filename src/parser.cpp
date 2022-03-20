@@ -183,7 +183,7 @@ void Parser::global_declaration(Tree &tree)
         {
             putback_token();
             putback_token();
-            variable_declaration(tree);
+            variable_declaration(tree, true);
         }
         else
         {
@@ -194,11 +194,15 @@ void Parser::global_declaration(Tree &tree)
     }
 }
 
-void Parser::variable_declaration(Tree &tree)
+void Parser::variable_declaration(Tree &tree, bool is_global)
 {
     if (nextToken == Token::T_BOOLEAN || nextToken == Token::T_INT)
     {
         Tree var_dec = VariableDeclaration();
+        if (is_global)
+        {
+            var_dec = GlobalVariableDeclaration();
+        }
 
         type(var_dec);
         identifier(var_dec);
