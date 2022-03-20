@@ -1,6 +1,8 @@
 #include "scanner.hpp"
 #include "parser.hpp"
 #include "tree.hpp"
+#include "semantic.hpp"
+
 int main(int argc, char *argv[])
 {
     std::fstream file;
@@ -20,6 +22,7 @@ int main(int argc, char *argv[])
 
     auto parser = std::make_unique<Parser>(&file);
     Tree program = parser->parse();
+    Semantic semantic_analysis = Semantic(program);
     program.print(0);
 
     return EXIT_SUCCESS;
