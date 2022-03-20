@@ -1,3 +1,5 @@
+int j;
+
 main (){
     int x;
     x = foo();
