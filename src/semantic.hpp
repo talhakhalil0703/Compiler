@@ -1,36 +1,10 @@
 #ifndef SEMANTIC
 #define SEMANTIC
-#include <unordered_map>
+
+#include <vector>
 #include "tree.hpp"
-
-enum class Kind
-{
-    var,
-    func,
-    arg,
-    global_var
-};
-
-class SymbolEntry
-{
-public:
-    SymbolEntry();
-    ~SymbolEntry() = default;
-
-    std::string name;
-    Kind kind;
-    std::string type;
-};
-
-class SymbolTable
-{
-public:
-    SymbolTable();
-    ~SymbolTable() = default;
-
-    std::unordered_map<std::string, SymbolEntry> enteries;
-    std::vector<std::unordered_map<std::string, SymbolEntry>> inner_scope = {};
-};
+#include "symboltable.hpp"
+#include "errorhandler.hpp"
 
 class Semantic
 {
@@ -39,16 +13,23 @@ public:
     ~Semantic() = default;
 
     Tree &program;
+    SymbolTable table;
 
 protected:
 private:
-    SymbolTable table;
+    std::vector<SymbolTable *> memory_stack;
 
+    ErrorHandler error_handler = ErrorHandler();
     void analyze();
     void global_declarations();
+    void id_identification(Tree &node, SymbolTable &table);
 
     // Helper funcitons
+    void error(std::string message, Tree &node);
+    void error(std::string message);
     std::string get_name(Tree &node);
+    Tree *get_id(Tree &node);
     std::string get_type(Tree &node, bool is_function = false);
+    SymbolEntry *get_entry(std::string name);
 };
 #endif

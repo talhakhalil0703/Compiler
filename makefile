@@ -1,7 +1,7 @@
 CC := g++
 CXXFLAGS := -std=c++14 -Wall -g
 EXEC := main
-OBJS := src/main.cpp src/scanner.cpp src/token.hpp src/errorhandler.cpp src/errorhandler.hpp src/scanner.hpp src/parser.cpp src/parser.hpp src/tree.hpp src/semantic.cpp src/semantic.hpp
+OBJS := src/main.cpp src/scanner.cpp src/token.hpp src/errorhandler.cpp src/errorhandler.hpp src/scanner.hpp src/parser.cpp src/parser.hpp src/tree.hpp src/semantic.cpp src/semantic.hpp src/symboltable.hpp src/symboltable.cpp
 
 all: ${OBJS}
 	$(CC) $(CXXFLAGS) -o ${EXEC} $^

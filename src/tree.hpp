@@ -4,6 +4,8 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include "symboltable.hpp"
+
 class Tree
 {
 public:
@@ -11,6 +13,8 @@ public:
     int line_number = -1; // Value of -1 indicates that this is garbage
     std::string attr;     // "" indicates it has no attribute
     std::string type;
+    std::string sig;
+    SymbolEntry *sym = nullptr;
 
     void print(int tab_amount)
     {
@@ -28,6 +32,14 @@ public:
         if (attr != "")
         {
             stream << ", 'attr': '" << attr << "'";
+        }
+        if (sig != "")
+        {
+            stream << ", 'sig': '" << sig << "'";
+        }
+        if (sym != nullptr)
+        {
+            stream << ", 'sym': '" << sym << "'";
         }
         stream << "}\n";
 
