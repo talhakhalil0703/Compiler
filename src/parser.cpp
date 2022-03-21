@@ -474,8 +474,9 @@ void Parser::statement(Tree &tree)
         }
         else
         {
-            statement_tree.branches.push_back(Return());
-            expression(statement_tree);
+            Tree return_node = Return();
+            expression(return_node);
+            statement_tree.branches.push_back(return_node);
             if (nextToken == Token::T_SEMICOLON)
             {
             }
