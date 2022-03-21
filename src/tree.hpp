@@ -239,6 +239,15 @@ public:
     }
 };
 
+class While : public Tree
+{
+public:
+    While()
+    {
+        type = "while";
+    }
+};
+
 class Assignment : public Tree
 {
 public:

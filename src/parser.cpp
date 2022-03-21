@@ -528,16 +528,17 @@ void Parser::statement(Tree &tree)
     }
     else if (nextToken == Token::T_WHILE)
     {
-
         consume_token();
+        Tree while_tree = While();
+        while_tree.line_number = line_number;
         if (nextToken == Token::T_LEFTPARANTHESE)
         {
             consume_token();
-            expression(statement_tree);
+            expression(while_tree);
             if (nextToken == Token::T_RIGHTPARANTHESE)
             {
                 consume_token();
-                statement(statement_tree);
+                statement(while_tree);
             }
             else
             {
@@ -548,7 +549,7 @@ void Parser::statement(Tree &tree)
         {
             error("Syntax error expected (");
         }
-        tree.branches.push_back(statement_tree);
+        tree.branches.push_back(while_tree);
     }
 }
 
