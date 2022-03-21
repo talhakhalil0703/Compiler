@@ -29,7 +29,7 @@ private:
     void function_declaration_checks(Tree &node);
     void function_call_checks(Tree &node);
     void aggregate_returns(Tree &node, std::vector<std::string> &returns, std::string expected);
-    void extract_function_argument_type(std::string type_string, std::vector<std::string>& args);
+    void extract_function_argument_type(std::string type_string, std::vector<std::string> &args);
 
     // Helper funcitons
     void error(std::string message, Tree &node);
@@ -42,6 +42,8 @@ private:
     bool is_operator(Tree &node);
 
     int scope_depth = 0;
+    int while_count = 0;
+    int break_count = 0;
 
     // && ||
     void and_or_operator(Tree &node, std::vector<std::string> args);

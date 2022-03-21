@@ -149,6 +149,20 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
         // node.sig = "Depth" + std::to_string(block_depth);
     }
 
+    if (node.type == "while")
+    {
+        while_count++;
+    }
+
+    if (node.type == "break")
+    {
+        break_count++;
+        if (while_count != break_count)
+        {
+            error("break must be inside 'while'", node);
+        }
+    }
+
     if (node.type == "formal" || node.type == "variable_declaration")
     {
         // Insert into symbol table
@@ -248,6 +262,15 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
     if (node.type == "block")
     {
         scope_depth--;
+    }
+
+    if (node.type == "while")
+    {
+        while_count--;
+    }
+    if (node.type == "break")
+    {
+        break_count--;
     }
 }
 

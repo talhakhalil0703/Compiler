@@ -457,7 +457,9 @@ void Parser::statement(Tree &tree)
         consume_token();
         if (nextToken == Token::T_SEMICOLON)
         {
-            statement_tree.branches.push_back(Break());
+            Tree break_node = Break();
+            break_node.line_number = line_number;
+            statement_tree.branches.push_back(break_node);
         }
         else
         {
