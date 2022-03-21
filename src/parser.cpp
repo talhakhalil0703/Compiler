@@ -455,17 +455,16 @@ void Parser::statement(Tree &tree)
     {
 
         consume_token();
+        Tree break_node = Break();
+        break_node.line_number = line_number;
         if (nextToken == Token::T_SEMICOLON)
         {
-            Tree break_node = Break();
-            break_node.line_number = line_number;
-            statement_tree.branches.push_back(break_node);
         }
         else
         {
             error("Syntax error missing ;");
         }
-        tree.branches.push_back(statement_tree);
+        tree.branches.push_back(break_node);
     }
     else if (nextToken == Token::T_RETURN)
     {
