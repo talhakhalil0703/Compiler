@@ -74,6 +74,7 @@ public:
     {
         attr = number;
         type = "number";
+        sig = "int";
     }
 };
 
@@ -93,6 +94,7 @@ public:
     TrueLiteral()
     {
         type = "true";
+        sig = "boolean";
     }
 };
 
@@ -102,6 +104,7 @@ public:
     FalseLiteral()
     {
         type = "false";
+        sig = "boolean";
     }
 };
 
@@ -111,6 +114,7 @@ public:
     Int()
     {
         type = "int";
+        sig = "int";
     }
 };
 
@@ -120,6 +124,7 @@ public:
     Boolean()
     {
         type = "boolean";
+        sig = "boolean";
     }
 };
 

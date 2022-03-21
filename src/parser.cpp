@@ -204,6 +204,7 @@ void Parser::variable_declaration(Tree &tree, bool is_global)
             var_dec = GlobalVariableDeclaration();
         }
 
+        var_dec.line_number = line_number;
         type(var_dec);
         identifier(var_dec);
 
@@ -237,7 +238,7 @@ void Parser::identifier(Tree &tree)
 void Parser::function_decleration(Tree &tree)
 {
     Tree func_dec = FunctionDeclaration();
-
+    func_dec.line_number = line_number;
     function_header(func_dec);
     block(func_dec);
     tree.branches.push_back(func_dec);
@@ -470,14 +471,14 @@ void Parser::statement(Tree &tree)
         consume_token();
         if (nextToken == Token::T_SEMICOLON)
         {
-            statement_tree.branches.push_back(Return());
+            tree.branches.push_back(Return());
         }
         else
         {
             Tree return_node = Return();
             return_node.line_number = line_number;
             expression(return_node);
-            statement_tree.branches.push_back(return_node);
+            tree.branches.push_back(return_node);
             if (nextToken == Token::T_SEMICOLON)
             {
             }
@@ -487,7 +488,7 @@ void Parser::statement(Tree &tree)
             }
         }
 
-        tree.branches.push_back(statement_tree);
+        // tree.branches.push_back(statement_tree);
     }
     else if (nextToken == Token::T_IF)
     {

@@ -156,6 +156,7 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
         }
         entry.name = id->attr;
         entry.type = get_type(node);
+        node.sig = entry.type;
 
         if (id)
         {

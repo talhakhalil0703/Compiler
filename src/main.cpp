@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     Tree program = parser->parse();
     Semantic semantic_analysis = Semantic(program);
     program.print(0);
-    std::cout << "\n\n\n\nSymbol Table\n";
+    std::cout << "\nSymbol Table\n";
     std::cout << semantic_analysis.table.print(0);
 
     return EXIT_SUCCESS;
