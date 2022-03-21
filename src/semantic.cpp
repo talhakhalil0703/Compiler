@@ -180,6 +180,8 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
         if (symbol != nullptr)
         {
             node.sym = symbol;
+            // I know what the signature is because of the symbol
+            node.sig = symbol->type;
         }
         else
         {
