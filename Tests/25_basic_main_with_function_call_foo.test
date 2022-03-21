@@ -9,7 +9,7 @@ main (){
 
 int foo (int argument_foo){
     int x;
-    x = 5 + y;
+    x = 5 + argument_foo;
     x = x + j;
     return x;
 }
