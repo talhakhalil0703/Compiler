@@ -172,7 +172,7 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
 
         if (!table.insert_entry(id->attr, entry))
         {
-            error("Variable already declared in current scope", node);
+            error("'" + id->attr + "' redefined", node);
         }
 
         id->sym = table.get_entry(id->attr);
@@ -194,7 +194,7 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
         }
         else
         {
-            error("An undecalred identifier is used", node);
+            error("unknown identifier' " + func_id->attr + "'", node);
         }
     }
     else if (node.type == "id" && node.sym == nullptr)
@@ -208,7 +208,7 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
         }
         else
         {
-            error("An undecalred identifier is used", node);
+            error("unknown identifier' " + node.attr + "'", node);
         }
     }
 
