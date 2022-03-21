@@ -402,9 +402,9 @@ void Semantic::and_or_operator(Tree &node, std::vector<std::string> args)
         error("Expected more branches", node);
     }
 
-    if (args[0] != "boolean" && args[1] != "boolean")
+    if (args[0] != "boolean" || args[1] != "boolean")
     {
-        error("Type mismatch of args, expected booleans", node);
+        error("Type mismatch for '" + node.type + "'", node);
     }
     node.sig = "boolean";
 }
@@ -418,7 +418,7 @@ void Semantic::equality_operator(Tree &node, std::vector<std::string> args)
 
     if (args[0] != args[1])
     {
-        error("Type mismatch must", node);
+        error("Type mismatch for '" + node.type + "'", node);
     }
     node.sig = "boolean";
 }
@@ -430,9 +430,9 @@ void Semantic::comparison_operator(Tree &node, std::vector<std::string> args)
         error("Expected more branches", node);
     }
 
-    if (args[0] != "int" && args[1] != "int")
+    if (args[0] != "int" || args[1] != "int")
     {
-        error("Type mismatch must args, expected int", node);
+        error("Type mismatch for '" + node.type + "'", node);
     }
     node.sig = "boolean";
 }
@@ -444,9 +444,9 @@ void Semantic::arithmetic_operator(Tree &node, std::vector<std::string> args)
         error("Expected more branches", node);
     }
 
-    if (args[0] != "int" && args[1] != "int")
+    if (args[0] != "int" || args[1] != "int")
     {
-        error("Type mismatch must args, expected int", node);
+        error("Type mismatch for '" + node.type + "'", node);
     }
     node.sig = "int";
 }
@@ -459,7 +459,7 @@ void Semantic::min_operator(Tree &node, std::vector<std::string> args)
     }
     if (args.size() == 2 && args[1] != "int")
     {
-        error("Type mismatch must args, expected int", node);
+        error("Type mismatch for '" + node.type + "'", node);
     }
     node.sig = "int";
 }
@@ -468,7 +468,7 @@ void Semantic::not_operator(Tree &node, std::vector<std::string> args)
 {
     if (args[0] != "boolean")
     {
-        error("Type mismatch must args, expected boolean", node);
+        error("Type mismatch for '" + node.type + "'", node);
     }
 
     node.sig = "boolean";
@@ -483,7 +483,7 @@ void Semantic::assignment_operator(Tree &node, std::vector<std::string> args)
 
     if (args[0] != args[1])
     {
-        error("Type mismatch", node);
+        error("Type mismatch for '" + node.type + "'", node);
     }
 
     node.sig = args[0];

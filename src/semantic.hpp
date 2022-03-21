@@ -35,12 +35,19 @@ private:
     SymbolEntry *get_entry(std::string name);
     bool is_operator(Tree &node);
 
+    // && ||
     void and_or_operator(Tree &node, std::vector<std::string> args);
+    // == !=
     void equality_operator(Tree &node, std::vector<std::string> args);
+    // < > <= >=
     void comparison_operator(Tree &node, std::vector<std::string> args);
+    // + * / %
     void arithmetic_operator(Tree &node, std::vector<std::string> args);
+    // -
     void min_operator(Tree &node, std::vector<std::string> args);
+    // !
     void not_operator(Tree &node, std::vector<std::string> args);
+    // =
     void assignment_operator(Tree &node, std::vector<std::string> args);
 };
 #endif

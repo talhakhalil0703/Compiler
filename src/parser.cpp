@@ -797,7 +797,7 @@ void Parser::relational_expression_(Tree &express)
         greaterthan.line_number = line_number;
         Tree other_node = express.branches.back();
         express.branches.pop_back();
-        greaterthan.branches.push_back(greaterthan);
+        greaterthan.branches.push_back(other_node);
         consume_token();
         additive_expression(greaterthan);
         relational_expression_(greaterthan);
