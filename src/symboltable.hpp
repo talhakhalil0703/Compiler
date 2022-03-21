@@ -43,6 +43,7 @@ public:
     std::string name;
     Kind kind;
     std::string type;
+    std::string return_type;
     SymbolTable *inner_scope = nullptr;
 
     std::string print(int tab_amount = 0);

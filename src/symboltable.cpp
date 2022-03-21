@@ -15,8 +15,12 @@ std::string SymbolEntry::print(int tab_amount)
     }
 
     stream << "name: '" << name << "' Kind: '" << getName(kind) << "' Type: '";
-    stream << type << "'"
-           << "\n";
+    stream << type << "'";
+    if (return_type != "")
+    {
+        stream << " 'return' " << return_type;
+    }
+    stream << "\n";
 
     if (inner_scope != NULL)
     {

@@ -23,24 +23,26 @@ public:
         {
             stream << "\t";
         }
-        stream << type << " { 'type': "
-               << "'" << type << "'";
-        if (line_number != -1)
-        {
-            stream << ", 'lineno': " << line_number;
-        }
+        stream << type << " {";
         if (attr != "")
         {
-            stream << ", 'attr': '" << attr << "'";
-        }
-        if (sig != "")
-        {
-            stream << ", 'sig': '" << sig << "'";
+            stream << "'attr': '" << attr << "', ";
         }
         if (sym != nullptr)
         {
-            stream << ", 'sym': '" << sym << "'";
+            stream << "'sym': '" << sym << "', ";
         }
+        if (sig != "")
+        {
+            stream << "'sig': '" << sig << "', ";
+        }
+        if (line_number != -1)
+        {
+            stream << "'lineno': " << line_number << ", ";
+        }
+
+        stream << "'type': "
+               << "'" << type << "'";
         stream << "}\n";
 
         std::cout << stream.str();

@@ -11,6 +11,7 @@ void Semantic::analyze()
     memory_stack.push_back(&table);
     global_declarations();
     id_identification(program, table);
+    type_checking(program);
     return;
 }
 
@@ -64,11 +65,13 @@ void Semantic::global_declarations()
             {
                 entry.kind = Kind::func;
                 entry.type = get_type(global_decs[i], true);
+                entry.return_type = "void";
             }
             else if (global_decs[i].type == "function_declaration")
             {
                 entry.kind = Kind::func;
                 entry.type = get_type(global_decs[i], true);
+                entry.return_type = get_type(global_decs[i]);
             }
             else
             {
@@ -175,6 +178,25 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
         id->sym = table.get_entry(id->attr);
         return;
     }
+    else if (node.type == "function_call")
+    {
+        Tree *func_id = get_id(node);
+        SymbolEntry *symbol = get_entry(func_id->attr);
+        if (symbol != nullptr)
+        {
+            if (func_id->sym != nullptr)
+            {
+                func_id->sym = symbol;
+                // I know what the signature is because of the symbol
+                func_id->sig = symbol->type;
+            }
+            node.sig = symbol->return_type;
+        }
+        else
+        {
+            error("An undecalred identifier is used", node);
+        }
+    }
     else if (node.type == "id" && node.sym == nullptr)
     { // We have an id without a reference
         SymbolEntry *symbol = get_entry(node.attr);
@@ -280,4 +302,189 @@ std::string Semantic::get_type(Tree &node, bool is_function)
     }
 
     return type_string.str();
+}
+
+bool Semantic::is_operator(Tree &node)
+{
+    if (node.type == "=")
+        return true;
+    if (node.type == "-")
+        return true;
+    if (node.type == "!")
+        return true;
+    if (node.type == "*")
+        return true;
+    if (node.type == "/")
+        return true;
+    if (node.type == "+")
+        return true;
+    if (node.type == "%")
+        return true;
+    if (node.type == "<")
+        return true;
+    if (node.type == "<=")
+        return true;
+    if (node.type == ">")
+        return true;
+    if (node.type == ">=")
+        return true;
+    if (node.type == "==")
+        return true;
+    if (node.type == "!=")
+        return true;
+    if (node.type == "AND")
+        return true;
+    if (node.type == "OR")
+        return true;
+    return false;
+}
+
+void Semantic::type_checking(Tree &node)
+{
+    if (is_operator(node))
+    {
+        std::vector<std::string> type_to_check;
+        for (uint i = 0; i < node.branches.size(); i++)
+        {
+            if (node.branches[i].sig == "")
+            {
+                type_checking(node.branches[i]);
+            }
+            type_to_check.push_back(node.branches[i].sig);
+        }
+
+        if (node.type == "OR" || node.type == "AND")
+        {
+            and_or_operator(node, type_to_check);
+        }
+        else if (node.type == "==" || node.type == "!=")
+        {
+            equality_operator(node, type_to_check);
+        }
+        else if (node.type == "<" || node.type == ">" || node.type == ">=" || node.type == "<=")
+        {
+            comparison_operator(node, type_to_check);
+        }
+        else if (node.type == "+" || node.type == "*" || node.type == "/" || node.type == "%")
+        {
+            arithmetic_operator(node, type_to_check);
+        }
+        else if (node.type == "-")
+        {
+            min_operator(node, type_to_check);
+        }
+        else if (node.type == "!")
+        {
+            not_operator(node, type_to_check);
+        }
+        else if (node.type == "=")
+        {
+            assignment_operator(node, type_to_check);
+        }
+        else
+        {
+            // No idea
+        }
+    }
+    else
+    {
+        for (uint i = 0; i < node.branches.size(); i++)
+        {
+            type_checking(node.branches[i]);
+        }
+    }
+}
+
+void Semantic::and_or_operator(Tree &node, std::vector<std::string> args)
+{
+    if (args.size() != 2)
+    {
+        error("Expected more branches", node);
+    }
+
+    if (args[0] != "boolean" && args[1] != "boolean")
+    {
+        error("Type mismatch of args, expected booleans", node);
+    }
+    node.sig = "boolean";
+}
+
+void Semantic::equality_operator(Tree &node, std::vector<std::string> args)
+{
+    if (args.size() != 2)
+    {
+        error("Expected more branches", node);
+    }
+
+    if (args[0] != args[1])
+    {
+        error("Type mismatch must", node);
+    }
+    node.sig = "boolean";
+}
+
+void Semantic::comparison_operator(Tree &node, std::vector<std::string> args)
+{
+    if (args.size() != 2)
+    {
+        error("Expected more branches", node);
+    }
+
+    if (args[0] != "int" && args[1] != "int")
+    {
+        error("Type mismatch must args, expected int", node);
+    }
+    node.sig = "boolean";
+}
+
+void Semantic::arithmetic_operator(Tree &node, std::vector<std::string> args)
+{
+    if (args.size() != 2)
+    {
+        error("Expected more branches", node);
+    }
+
+    if (args[0] != "int" && args[1] != "int")
+    {
+        error("Type mismatch must args, expected int", node);
+    }
+    node.sig = "int";
+}
+
+void Semantic::min_operator(Tree &node, std::vector<std::string> args)
+{
+    if (args[0] != "int")
+    {
+        error("Type mismatch must args, expected int", node);
+    }
+    if (args.size() == 2 && args[1] != "int")
+    {
+        error("Type mismatch must args, expected int", node);
+    }
+    node.sig = "int";
+}
+
+void Semantic::not_operator(Tree &node, std::vector<std::string> args)
+{
+    if (args[0] != "boolean")
+    {
+        error("Type mismatch must args, expected boolean", node);
+    }
+
+    node.sig = "boolean";
+}
+
+void Semantic::assignment_operator(Tree &node, std::vector<std::string> args)
+{
+    if (args.size() != 2)
+    {
+        error("Expected more branches", node);
+    }
+
+    if (args[0] != args[1])
+    {
+        error("Type mismatch", node);
+    }
+
+    node.sig = args[0];
 }
