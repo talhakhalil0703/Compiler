@@ -12,6 +12,7 @@ void Semantic::analyze()
     global_declarations();
     id_identification(program, table);
     type_checking(program);
+    function_checking(program);
     return;
 }
 
@@ -142,10 +143,19 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
         The rest we should be able to find within our symbol table. If we cannot
         then they are not declared
     */
+    if (node.type == "block")
+    {
+        scope_depth++;
+        // node.sig = "Depth" + std::to_string(block_depth);
+    }
 
     if (node.type == "formal" || node.type == "variable_declaration")
     {
         // Insert into symbol table
+        if (node.type == "variable_declaration" && scope_depth > 1)
+        {
+            error("local declaration not in outermost block", node);
+        }
         SymbolEntry entry;
         Tree *id;
         id = get_id(node);
@@ -233,6 +243,11 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
         {
             id_identification(node.branches[i], table);
         }
+    }
+
+    if (node.type == "block")
+    {
+        scope_depth--;
     }
 }
 
@@ -487,4 +502,122 @@ void Semantic::assignment_operator(Tree &node, std::vector<std::string> args)
     }
 
     node.sig = args[0];
+}
+
+void Semantic::function_checking(Tree &node)
+{
+    if (node.type == "function_declaration" || node.type == "main_declaration")
+    {
+        function_declaration_checks(node);
+    }
+    if (node.type == "function_call")
+    {
+        function_call_checks(node);
+    }
+
+    for (uint i = 0; i < node.branches.size(); i++)
+    {
+        function_checking(node.branches[i]);
+    }
+}
+
+void Semantic::function_call_checks(Tree &node)
+{
+    Tree *func_cal_id = get_id(node);
+    SymbolEntry *entry = func_cal_id->sym;
+    if (func_cal_id->attr == "main")
+    {
+        error("cannot call main", node);
+    }
+
+    for (uint i = 0; i < node.branches.size(); i++)
+    {
+        if (node.branches[i].type != "actuals")
+        {
+            continue;
+        }
+        std::vector<std::string> args;
+        extract_function_argument_type(entry->type, args);
+        if (args.size() != node.branches[i].branches.size())
+        {
+            error("number/type of arguments doesn't match function declaration", node);
+        }
+
+        for (uint j = 0; j < args.size(); j++)
+        {
+            if (args[i] != node.branches[i].branches[j].sig)
+            {
+                error("number/type of arguments doesn't match function declaration", node);
+            }
+        }
+    }
+}
+
+void Semantic::extract_function_argument_type(std::string type_string, std::vector<std::string> &args)
+{
+    type_string.replace(0, 1, "");
+    type_string.replace(type_string.end() - 1, type_string.end(), "");
+
+    int start = 0;
+    int end = type_string.find(",");
+    while (end != -1)
+    {
+        args.push_back(type_string.substr(start, end - start));
+        start = end + 1;
+        end = type_string.find(",", start);
+    }
+}
+
+void Semantic::aggregate_returns(Tree &node, std::vector<std::string> &found_returns, std::string expected)
+{
+    if (node.type == "return")
+    {
+        if (expected == "void" || expected == "")
+        {
+            if (node.branches.size() > 0)
+            {
+                error("this function can't return a value", node);
+            }
+        }
+        else
+        {
+            if (node.branches.size() > 0)
+            {
+                std::string signature = node.branches[0].sig;
+                if (signature != expected)
+                {
+                    error("returned value has the wrong type", node);
+                }
+                found_returns.push_back(signature);
+            }
+            else
+            {
+                error("this function must return a value", node);
+            }
+        }
+    }
+    else
+    {
+        for (uint i = 0; i < node.branches.size(); i++)
+        {
+            aggregate_returns(node.branches[i], found_returns, expected);
+        }
+    }
+}
+
+void Semantic::function_declaration_checks(Tree &node)
+{
+    Tree *func_dec_id = get_id(node);
+    std::string return_type = func_dec_id->sym->return_type;
+    std::vector<std::string> returns;
+    // Now make a note of all returns
+    for (uint i = 0; i < node.branches.size(); i++)
+    {
+        aggregate_returns(node.branches[i], returns, return_type);
+    }
+
+    if (return_type != "" && return_type != "void" && returns.size() == 0)
+    {
+        error("no return statement in non-void function '" + func_dec_id->attr + "'");
+    }
 }

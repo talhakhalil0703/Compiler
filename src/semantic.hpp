@@ -2,6 +2,7 @@
 #define SEMANTIC
 
 #include <vector>
+#include <string>
 #include "tree.hpp"
 #include "symboltable.hpp"
 #include "errorhandler.hpp"
@@ -24,6 +25,11 @@ private:
     void global_declarations();
     void id_identification(Tree &node, SymbolTable &table);
     void type_checking(Tree &node);
+    void function_checking(Tree &node);
+    void function_declaration_checks(Tree &node);
+    void function_call_checks(Tree &node);
+    void aggregate_returns(Tree &node, std::vector<std::string> &returns, std::string expected);
+    void extract_function_argument_type(std::string type_string, std::vector<std::string>& args);
 
     // Helper funcitons
     void error(std::string message, Tree &node);
@@ -34,6 +40,8 @@ private:
     std::string get_return_type();
     SymbolEntry *get_entry(std::string name);
     bool is_operator(Tree &node);
+
+    int scope_depth = 0;
 
     // && ||
     void and_or_operator(Tree &node, std::vector<std::string> args);
