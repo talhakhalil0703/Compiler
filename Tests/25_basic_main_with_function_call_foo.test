@@ -7,7 +7,7 @@ main (){
     x = foo(6);
 }
 
-int foo (int y){
+int foo (int argument_foo){
     int x;
     x = 5 + y;
     x = x + j;
