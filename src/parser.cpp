@@ -351,12 +351,12 @@ void Parser::main_function_declarator(Tree &tree)
         }
         else
         {
-            error("Syntax error, probably missing ), for main function");
+            error("Parser error, probably missing ), for main function");
         }
     }
     else
     {
-        error("Syntax error, probably missing (, for main function");
+        error("Parser error, probably missing (, for main function");
     }
 }
 
@@ -382,13 +382,13 @@ void Parser::block(Tree &tree)
             }
             else
             {
-                error("Syntax error, probably missing } for block statement");
+                error("Parser error, probably missing } for block statement");
             }
         }
     }
     else
     {
-        error("Syntax error, probably missing { for block statement");
+        error("Parser error, probably missing { for block statement");
     }
 }
 
@@ -462,7 +462,7 @@ void Parser::statement(Tree &tree)
         }
         else
         {
-            error("Syntax error missing ;");
+            error("Parser error missing ;");
         }
         tree.branches.push_back(break_node);
     }
@@ -485,7 +485,7 @@ void Parser::statement(Tree &tree)
             }
             else
             {
-                error("Syntax error missing ;");
+                error("Parser error missing ;");
             }
         }
         tree.branches.push_back(return_node);
@@ -517,12 +517,12 @@ void Parser::statement(Tree &tree)
             }
             else
             {
-                error("Syntax error expected )");
+                error("Parser error expected )");
             }
         }
         else
         {
-            error("Syntax error expected (");
+            error("Parser error expected (");
         }
         tree.branches.push_back(if_token);
     }
@@ -542,12 +542,12 @@ void Parser::statement(Tree &tree)
             }
             else
             {
-                error("Syntax error expected )");
+                error("Parser error expected )");
             }
         }
         else
         {
-            error("Syntax error expected (");
+            error("Parser error expected (");
         }
         tree.branches.push_back(while_tree);
     }
@@ -588,7 +588,7 @@ void Parser::primary(Tree &express)
         }
         else
         {
-            error("Syntax error, expected )");
+            error("Parser error, expected )");
         }
     }
     // Check for indentifier, in this case don't consume the token
@@ -652,7 +652,7 @@ void Parser::function_invocation(Tree &tree)
                 }
                 else
                 {
-                    error("Syntax error function call missing (, ");
+                    error("Parser error function call missing (, ");
                 }
             }
         }
