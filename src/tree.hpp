@@ -87,6 +87,7 @@ public:
     {
         attr = str;
         type = "string";
+        sig = "string";
     }
 };
 

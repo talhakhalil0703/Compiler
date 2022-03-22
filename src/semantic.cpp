@@ -9,11 +9,92 @@ Semantic::Semantic(Tree &tree) : program(tree)
 void Semantic::analyze()
 {
     memory_stack.push_back(&table);
-    global_declarations();
+    run_time_library_enteries();
+    global_declarations(table.get_entry("program")->inner_scope);
     id_identification(program, table);
     type_checking(program);
     function_checking(program);
     return;
+}
+
+void Semantic::run_time_library_enteries(){
+    //printi
+    SymbolEntry entry = SymbolEntry();
+    entry.kind = Kind::func;
+    entry.name = "printi";
+    entry.type = "f(int)";
+    entry.return_type = "void";
+    entry.inner_scope = new SymbolTable();
+    SymbolEntry arg = SymbolEntry();
+    arg.name = "i";
+    arg.kind = Kind::arg;
+    arg.type = "int";
+    entry.inner_scope->insert_entry("i", arg);
+    table.insert_entry("printi", entry);
+
+    //printc
+    entry = SymbolEntry();
+    entry.kind = Kind::func;
+    entry.name = "printc";
+    entry.type = "f(int)";
+    entry.return_type = "void";
+    entry.inner_scope = new SymbolTable();
+    arg = SymbolEntry();
+    arg.name = "c";
+    arg.kind = Kind::arg;
+    arg.type = "int";
+    entry.inner_scope->insert_entry("c", arg);
+    table.insert_entry("printc", entry);
+
+    //printb
+    entry = SymbolEntry();
+    entry.kind = Kind::func;
+    entry.name = "printb";
+    entry.type = "f(boolean)";
+    entry.return_type = "void";
+    entry.inner_scope = new SymbolTable();
+    arg = SymbolEntry();
+    arg.name = "b";
+    arg.kind = Kind::arg;
+    arg.type = "boolean";
+    entry.inner_scope->insert_entry("b", arg);
+    table.insert_entry("printb", entry);
+
+    //prints
+    entry = SymbolEntry();
+    entry.kind = Kind::func;
+    entry.name = "prints";
+    entry.type = "f(string)";
+    entry.return_type = "void";
+    entry.inner_scope = new SymbolTable();
+    arg = SymbolEntry();
+    arg.name = "s";
+    arg.kind = Kind::arg;
+    arg.type = "string";
+    entry.inner_scope->insert_entry("s", arg);
+    table.insert_entry("prints", entry);
+
+    //halt
+    entry = SymbolEntry();
+    entry.kind = Kind::func;
+    entry.name = "halt";
+    entry.type = "f()";
+    entry.return_type = "void";
+    table.insert_entry("halt", entry);
+
+    //getchar
+    entry = SymbolEntry();
+    entry.kind = Kind::func;
+    entry.name = "getchar";
+    entry.type = "f()";
+    entry.return_type = "int";
+    table.insert_entry("getchar", entry);
+
+    SymbolEntry program = SymbolEntry();
+    program.name = "program";
+    program.inner_scope = new SymbolTable();
+    table.insert_entry("program", program);
+    memory_stack.push_back(program.inner_scope);
 }
 
 void Semantic::error(std::string message, Tree &node)
@@ -46,10 +127,16 @@ SymbolEntry *Semantic::get_entry(std::string name)
     return nullptr;
 }
 
-void Semantic::global_declarations()
+void Semantic::global_declarations(SymbolTable *program_table)
+
 {
+    if (program_table == nullptr){
+        error("no program found");
+    }
+
     if (program.type == "program")
     {
+        program.sym = get_entry("program");
         std::vector<Tree> &global_decs = program.branches;
         for (uint i = 0; i < global_decs.size(); i++)
         {
@@ -91,7 +178,7 @@ void Semantic::global_declarations()
             }
 
             entry.name = name;
-            if (!table.insert_entry(name, entry))
+            if (!program_table->insert_entry(name, entry))
             {
                 if (global_decs[i].type == "main_declaration")
                 {
@@ -107,11 +194,11 @@ void Semantic::global_declarations()
                 }
             }
 
-            node_type->sym = table.get_entry(name);
+            node_type->sym = program_table->get_entry(name);
         }
     }
 
-    if (table.get_entry("main") == nullptr)
+    if (program_table->get_entry("main") == nullptr)
     {
         error("no main declaration found");
     }
@@ -241,7 +328,7 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
         if (node.type == "main_declaration" || node.type == "function_declaration")
         {
             SymbolTable *scope;
-            SymbolEntry *table_entry = table.get_entry(get_name(node));
+            SymbolEntry *table_entry = get_entry(get_name(node));
 
             if (table_entry->inner_scope == nullptr)
             {
@@ -379,6 +466,15 @@ bool Semantic::is_operator(Tree &node)
 
 void Semantic::type_checking(Tree &node)
 {
+    if(node.branches.size() == 0 && node.sig != ""){
+        return;
+    } else{
+        for (uint i = 0; i < node.branches.size(); i++)
+        {
+            type_checking(node.branches[i]);   
+        }
+    }
+
     if (is_operator(node))
     {
         std::vector<std::string> type_to_check;
@@ -568,7 +664,10 @@ void Semantic::function_call_checks(Tree &node)
 
         for (uint j = 0; j < args.size(); j++)
         {
-            if (args[j] != node.branches[i].branches[j].sig)
+            std::string arg1 = args[j];
+            std::string comp_arg = node.branches[i].branches[j].sig;
+
+            if (arg1 != comp_arg)
             {
                 error("number/type of arguments doesn't match function declaration", node);
             }

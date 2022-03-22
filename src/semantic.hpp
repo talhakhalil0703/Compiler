@@ -21,8 +21,9 @@ private:
     std::vector<SymbolTable *> memory_stack;
 
     ErrorHandler error_handler = ErrorHandler();
+    void run_time_library_enteries();
     void analyze();
-    void global_declarations();
+    void global_declarations(SymbolTable *table);
     void id_identification(Tree &node, SymbolTable &table);
     void type_checking(Tree &node);
     void function_checking(Tree &node);
