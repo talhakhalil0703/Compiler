@@ -469,19 +469,17 @@ void Parser::statement(Tree &tree)
     else if (nextToken == Token::T_RETURN)
     {
 
+        Tree return_node = Return();
         consume_token();
         if (nextToken == Token::T_SEMICOLON)
         {
-            Tree return_node = Return();
             return_node.line_number = line_number;
             tree.branches.push_back(return_node);
         }
         else
         {
-            Tree return_node = Return();
             return_node.line_number = line_number;
             expression(return_node);
-            tree.branches.push_back(return_node);
             if (nextToken == Token::T_SEMICOLON)
             {
             }
@@ -490,6 +488,7 @@ void Parser::statement(Tree &tree)
                 error("Missing ;");
             }
         }
+        tree.branches.push_back(return_node);
     }
     else if (nextToken == Token::T_IF)
     {
