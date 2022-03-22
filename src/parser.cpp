@@ -449,7 +449,12 @@ void Parser::statement(Tree &tree)
     else if (nextToken == Token::T_ID)
     {
         statement_expression(statement_tree);
-        tree.branches.push_back(statement_tree);
+        if (nextToken == Token::T_SEMICOLON){
+            consume_token();
+            tree.branches.push_back(statement_tree);
+        } else {
+            error("Parser error, expected semicolon");
+        }
     }
     else if (nextToken == Token::T_BREAK)
     {
