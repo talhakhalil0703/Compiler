@@ -22,12 +22,8 @@ int main(int argc, char *argv[])
 
     auto parser = std::make_unique<Parser>(&file);
     Tree program = parser->parse();
-    program.print(0);
-    std::cout << "Semantic Table: "<< std::endl;
     Semantic semantic_analysis = Semantic(program);
     program.print(0);
-    std::cout << "\nSymbol Table\n";
-    std::cout << semantic_analysis.table.print(0);
 
     return EXIT_SUCCESS;
 }

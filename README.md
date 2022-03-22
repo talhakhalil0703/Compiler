@@ -98,6 +98,11 @@ Compiler usage: main [filename]
     b. Type mismatch ! int bool
 67. Type match ! bool bool
 68. Correct break statement
+69. Makes sure basic function return works
+70. Makes sure addition return statement works
+71. Makes sure subtraction return statement works
+72. Makes sure assignment return statement works
+73. Makes sure if else without brackets works
 
 ### Grammar of J-- Specification
 

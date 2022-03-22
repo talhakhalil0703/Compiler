@@ -154,6 +154,11 @@ void Semantic::global_declarations(SymbolTable *program_table)
                 entry.kind = Kind::func;
                 entry.type = get_type(global_decs[i], true);
                 entry.return_type = "void";
+                main_decl++;
+
+                if (main_decl > 1){
+                    error("'main' redefined", global_decs[i]);
+                }
             }
             else if (global_decs[i].type == "function_declaration")
             {
@@ -180,11 +185,7 @@ void Semantic::global_declarations(SymbolTable *program_table)
             entry.name = name;
             if (!program_table->insert_entry(name, entry))
             {
-                if (global_decs[i].type == "main_declaration")
-                {
-                    error("'main' redefined", global_decs[i]);
-                }
-                else if (global_decs[i].type == "global_variable_declaration")
+                if (global_decs[i].type == "global_variable_declaration")
                 {
                     error("Redefining variable", global_decs[i]);
                 }
@@ -198,7 +199,7 @@ void Semantic::global_declarations(SymbolTable *program_table)
         }
     }
 
-    if (program_table->get_entry("main") == nullptr)
+    if (main_decl == 0)
     {
         error("no main declaration found");
     }

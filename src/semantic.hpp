@@ -45,6 +45,7 @@ private:
     int scope_depth = 0;
     int while_count = 0;
     int break_count = 0;
+    int main_decl = 0;
 
     // && ||
     void and_or_operator(Tree &node, std::vector<std::string> args);
