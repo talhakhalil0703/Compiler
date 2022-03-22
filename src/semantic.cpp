@@ -568,7 +568,7 @@ void Semantic::function_call_checks(Tree &node)
 
         for (uint j = 0; j < args.size(); j++)
         {
-            if (args[i] != node.branches[i].branches[j].sig)
+            if (args[j] != node.branches[i].branches[j].sig)
             {
                 error("number/type of arguments doesn't match function declaration", node);
             }
@@ -578,9 +578,18 @@ void Semantic::function_call_checks(Tree &node)
 
 void Semantic::extract_function_argument_type(std::string type_string, std::vector<std::string> &args)
 {
-    type_string.replace(0, 1, "");
+    type_string.replace(0, 2, "");
     type_string.replace(type_string.end() - 1, type_string.end(), "");
 
+    //Singular arg
+    if(type_string.find(",") == std::string::npos){
+        if (type_string != ""){
+            args.push_back(type_string);
+        }
+        return;
+    }
+
+    //Multiple
     int start = 0;
     int end = type_string.find(",");
     while (end != -1)

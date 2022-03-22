@@ -30,7 +30,7 @@ public:
         }
         if (sym != nullptr)
         {
-            stream << "'sym': '" << sym << "', ";
+            stream << "'sym': <" << sym << ">, ";
         }
         if (sig != "")
         {
