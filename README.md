@@ -103,6 +103,9 @@ Compiler usage: main [filename]
 71. Makes sure subtraction return statement works
 72. Makes sure assignment return statement works
 73. Makes sure if else without brackets works
+74. Checks for argument number mismatch
+75. Checks for if expression being boolean
+76. Checks for while expression being boolean
 
 ### Grammar of J-- Specification
 

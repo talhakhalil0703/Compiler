@@ -1,6 +1,6 @@
 main(){
     int i;
-    {
-        int j;
+    i = 3;
+    if(i){
     }
 }

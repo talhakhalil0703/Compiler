@@ -476,7 +476,7 @@ void Semantic::type_checking(Tree &node)
         }
     }
 
-    if (is_operator(node))
+    if (is_operator(node) || node.type == "if" || node.type == "while")
     {
         std::vector<std::string> type_to_check;
         for (uint i = 0; i < node.branches.size(); i++)
@@ -515,6 +515,16 @@ void Semantic::type_checking(Tree &node)
         else if (node.type == "=")
         {
             assignment_operator(node, type_to_check);
+        } else if(node.type == "if"){
+            //First branch of if is its expression
+            if (node.branches[0].sig != "boolean"){
+                error("need a boolean expression", node);
+            }
+        }else if(node.type == "while"){
+            //First branch of while is its expression
+            if (node.branches[0].sig != "boolean"){
+                error("need a boolean expression", node);
+            }
         }
         else
         {
@@ -681,22 +691,22 @@ void Semantic::extract_function_argument_type(std::string type_string, std::vect
     type_string.replace(0, 2, "");
     type_string.replace(type_string.end() - 1, type_string.end(), "");
 
-    //Singular arg
-    if(type_string.find(",") == std::string::npos){
-        if (type_string != ""){
-            args.push_back(type_string);
-        }
-        return;
-    }
-
     //Multiple
     int start = 0;
     int end = type_string.find(",");
     while (end != -1)
     {
         args.push_back(type_string.substr(start, end - start));
-        start = end + 1;
+        start = end + 2; //account for space in between 
         end = type_string.find(",", start);
+        type_string = type_string.substr(start, end);
+    }
+
+    if(type_string.find(",") == std::string::npos){
+        if (type_string != ""){
+            args.push_back(type_string);
+        }
+        return;
     }
 }
 
