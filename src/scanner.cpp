@@ -59,7 +59,7 @@ void Scanner::comment_state()
     {
         in->get();
     }
-    std::cout << "Comment caught at line " << line_number << "\n";
+    // std::cout << "Comment caught at line " << line_number << "\n";
 }
 
 // Ignore until a newline is detected

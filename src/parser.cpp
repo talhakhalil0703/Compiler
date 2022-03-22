@@ -485,7 +485,7 @@ void Parser::statement(Tree &tree)
             }
             else
             {
-                error("Missing ;");
+                error("Syntax error missing ;");
             }
         }
         tree.branches.push_back(return_node);
