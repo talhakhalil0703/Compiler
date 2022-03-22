@@ -4,7 +4,7 @@ from os.path import isfile
 
 dir_containing_tests = "Tests/"
 
-with open("results.md", "w") as output_file:
+with open("TEST_RESULTS.md", "w") as output_file:
     input_files = listdir(dir_containing_tests)
     input_files.sort()
 
