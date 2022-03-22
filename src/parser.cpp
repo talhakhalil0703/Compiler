@@ -474,7 +474,6 @@ void Parser::statement(Tree &tree)
         if (nextToken == Token::T_SEMICOLON)
         {
             return_node.line_number = line_number;
-            // tree.branches.push_back(return_node);
         }
         else
         {
@@ -926,8 +925,18 @@ void Parser::assignment(Tree &express)
 
 void Parser::assignment_expression(Tree &express)
 {
+    if (nextToken == Token::T_ID)
+    {
+        consume_token();
+        if (nextToken == Token::T_ASSIGN){
+            putback_token();
+            assignment(express);
+        }else{
+            putback_token();
+        }
+    }
+
     conditional_or_expression(express);
-    assignment(express);
 }
 
 void Parser::expression(Tree &tree)
