@@ -106,6 +106,9 @@ Compiler usage: main [filename]
 74. Checks for argument number mismatch
 75. Checks for if expression being boolean
 76. Hello World Program
+77. Conditonal Hello World Program
+78. Looped Hello World Program
+79. Functional Hello World Program
 
 ### Grammar of J-- Specification
 
