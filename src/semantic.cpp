@@ -1,5 +1,4 @@
 #include "semantic.hpp"
-#include "errorhandler.hpp"
 
 Semantic::Semantic(Tree &tree) : program(tree)
 {

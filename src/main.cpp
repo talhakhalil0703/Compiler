@@ -2,7 +2,7 @@
 #include "parser.hpp"
 #include "tree.hpp"
 #include "semantic.hpp"
-
+#include "synthesize.hpp"
 int main(int argc, char *argv[])
 {
     std::fstream file;
@@ -23,7 +23,21 @@ int main(int argc, char *argv[])
     auto parser = std::make_unique<Parser>(&file);
     Tree program = parser->parse();
     Semantic semantic_analysis = Semantic(program);
+    std::cout << "AST: " << std::endl;
     program.print(0);
+    auto synt = Synthesis(semantic_analysis.program, semantic_analysis.table);
+    
+    std::cout << "Symbol Table: " << std::endl;
+    std::cout << semantic_analysis.table.print();
+    
+    std::string s= ".s";
+    std::string output = argv[1] + s;
+
+    std::ofstream output_file;
+    output_file.open(output);
+    output_file << synt.data << std::endl;
+    output_file << synt.text << std::endl;
+    output_file.close();
 
     return EXIT_SUCCESS;
 }

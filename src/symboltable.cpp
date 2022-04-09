@@ -20,6 +20,10 @@ std::string SymbolEntry::print(int tab_amount)
     {
         stream << " 'return' " << return_type;
     }
+    if (assembly_label != "")
+    {
+        stream << " 'assembly label: '" << assembly_label;
+    }
     stream << "\n";
 
     if (inner_scope != NULL)
