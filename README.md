@@ -105,7 +105,7 @@ Compiler usage: main [filename]
 73. Makes sure if else without brackets works
 74. Checks for argument number mismatch
 75. Checks for if expression being boolean
-76. Checks for while expression being boolean
+76. Hello World Program
 
 ### Grammar of J-- Specification
 
