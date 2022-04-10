@@ -25,6 +25,7 @@ private:
     void synthesize(Tree & node);
     void run_time_libraries();
     void print_assembly();
+    bool part_of_runtime(std::string & str);
     std::string convert_string_to_bytes(std::string &str);
     std::string insert_into_data(std::string str);
     std::string get_label();

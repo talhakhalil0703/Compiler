@@ -66,6 +66,12 @@ void Synthesis::run_time_libraries()
     semantic.get_entry("printi")->assembly_label = "Lprinti";
 }
 
+bool Synthesis::part_of_runtime(std::string &str){
+    if (str == "getchar" || str == "halt" || str == "printb" || str == "printc" || str == "printi"|| str =="prints"){
+        return true;
+    }
+    return false;
+}
 void Synthesis::add_return_label(){
     add_label("return_label");
     mips_instruction("lw", "$ra", "0($sp)");
@@ -258,11 +264,15 @@ void Synthesis::function_call(Tree& node) {
         }
     }
 
-    dump_registers(node.stack_count);
+    if(!part_of_runtime(function_to_call)){
+        dump_registers(node.stack_count);
+    }
     mips_instruction("jal", label_of_function_to_call);
     node.id_register = "$v0";
     // Get all variables from stack
-    recover_registers(node.stack_count);
+    if (!part_of_runtime(function_to_call)){
+        recover_registers(node.stack_count);
+    }
 }
 
 void Synthesis::dump_registers(uint count){
@@ -413,6 +423,9 @@ std::string Synthesis::convert_string_to_bytes(std::string& str)
         return_string += std::to_string(x);
         if (i != str.size() - 1)
             return_string += ", ";
+    }
+    if (int(str[str.size()-1]) != 0){
+        return_string += ", 0";
     }
     return_string += " # " + str;
     return_string += "\n.align 2\n";
