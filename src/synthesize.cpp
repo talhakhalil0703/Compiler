@@ -1,9 +1,11 @@
 #include "synthesize.hpp"
 
-Synthesis::Synthesis(Tree& tree, SymbolTable& symbol_table) : program_tree(tree), table(symbol_table)
+Synthesis::Synthesis(Semantic& sem, Tree & prog) : semantic(sem), program_tree(prog)
 {
     run_time_libraries();
+    global_pass(program_tree);
     synthesize(program_tree);
+    add_return_label();
     print_assembly();
 }
 
@@ -56,12 +58,30 @@ void Synthesis::run_time_libraries()
     text += syscall + error + "jal Lprints\n";
     text += j + "LHalt\n\n";
 
-    table.get_entry("getchar")->assembly_label = "Lgetchar";
-    table.get_entry("halt")->assembly_label = "Lhalt";
-    table.get_entry("prints")->assembly_label = "Lprints";
-    table.get_entry("printb")->assembly_label = "Lprintb";
-    table.get_entry("printc")->assembly_label = "Lprintc";
-    table.get_entry("printi")->assembly_label = "Lprintci";
+    semantic.get_entry("getchar")->assembly_label = "Lgetchar";
+    semantic.get_entry("halt")->assembly_label = "Lhalt";
+    semantic.get_entry("prints")->assembly_label = "Lprints";
+    semantic.get_entry("printb")->assembly_label = "Lprintb";
+    semantic.get_entry("printc")->assembly_label = "Lprintc";
+    semantic.get_entry("printi")->assembly_label = "Lprinti";
+}
+
+void Synthesis::add_return_label(){
+    add_label("return_label");
+    mips_instruction("lw", "$ra", "0($sp)");
+    mips_instruction("addu", "$sp", "$sp", "4");
+    mips_instruction("jr", "$ra");
+}
+
+void Synthesis::global_pass(Tree& program){
+    for (uint i = 0; i < program.branches.size(); i++){
+        Tree & node = program.branches[i];
+        if (node.type == "function_declaration"){
+            std::string id = node.branches[1].attr;
+            std::string label = "function_" + id;
+            node.branches[1].sym->assembly_label = label;
+        }
+    }
 }
 
 void Synthesis::synthesize(Tree& node)
@@ -71,6 +91,14 @@ void Synthesis::synthesize(Tree& node)
         text += ".globl main\n";
         add_label("main");
         synthesize(node.branches[3]); //block node
+    } else if (node.type == "function_declaration"){
+        std::string label= node.branches[1].sym->assembly_label;
+        text += ".globl " + label + "\n";
+        add_label(label);
+        mips_instruction("subu", "$sp", "$sp", "4");
+        mips_instruction("sw", "$ra", "0($sp)");
+        synthesize(node.branches[2]);
+        synthesize(node.branches[3]);
     }
     else if (node.type == "if_else")
     {
@@ -94,7 +122,8 @@ void Synthesis::synthesize(Tree& node)
         //Statement synthesis? like the if statment block synthesis
         synthesize(node.branches[1]);
         add_label(label);
-    } else if (node.type == "while"){
+    }
+    else if (node.type == "while") {
         std::string start_label = "while_" + get_label();
         std::string exit_label = "while_exit_" + get_label();
         while_loop_leave_label = exit_label;
@@ -105,14 +134,20 @@ void Synthesis::synthesize(Tree& node)
         mips_instruction("j", start_label);
         add_label(exit_label);
 
-    } else if (node.type == "break"){
+    } else if(node.type == "return"){
+        evaluate_expressions(node.branches[0]);
+        mips_instruction("move", "$v0", node.branches[0].id_register);
+        mips_instruction("j", "return_label");
+    }
+    else if (node.type == "break") {
         mips_instruction("j", while_loop_leave_label);
     }
     else if (node.type == "variable_declaration") {
         // TODO: Global ids?
         std::string reg = get_register();
         node.branches[1].sym->register_id = reg;
-    } else if(node.type == "statement"){
+    }
+    else if (node.type == "statement") {
         evaluate_expressions(node.branches[0]);
     }
     else if (node.type == "block" || node.type == "program") {
@@ -120,9 +155,14 @@ void Synthesis::synthesize(Tree& node)
         {
             synthesize(node.branches[i]);
         }
+    } else if (node.type == "formals"){
+        for (uint i = 0; i < node.branches.size(); i++){
+            Tree & formal = node.branches[i];
+            std::string reg = get_register();
+            mips_instruction("move", reg, "$a"+std::to_string(i));
+            formal.branches[1].sym->register_id = reg;
+        }
     }
-
-
 
     if (node.type == "main_declaration")
     {
@@ -130,30 +170,10 @@ void Synthesis::synthesize(Tree& node)
     }
 }
 
-void preOrderTraversal(Tree& node, void* func(Tree& node))
-{
-    func(node);
-
-    for (uint i = 0; i < node.branches.size(); i++)
-    {
-        func(node.branches[i]);
-    }
-}
-
-void postOrderTraversal(Tree& node, void* func(Tree& node))
-{
-    for (uint i = 0; i < node.branches.size(); i++)
-    {
-        func(node.branches[i]);
-    }
-
-    func(node);
-}
-
 std::string Synthesis::get_register()
 {
     // TODO: Might want to make this more complex later on
-    return "$" + std::to_string(8 + register_count++);
+    return "$" + std::to_string(register_count++);
 }
 
 void Synthesis::evaluate_expressions(Tree& node)
@@ -175,7 +195,8 @@ void Synthesis::evaluate_expressions(Tree& node)
         std::string reg = get_register();
         mips_instruction("li", reg, "1");
         node.id_register = reg;
-    } else if (node_type == "id"){
+    }
+    else if (node_type == "id") {
         // TODO: Global ids?
         std::string reg = node.sym->register_id;
         node.id_register = reg;
@@ -210,26 +231,60 @@ void Synthesis::evaluate_expressions(Tree& node)
     else if (node.type == "+" || node.type == "*" || node.type == "/" || node.type == "%" || node.type == "<" || node.type == ">" || node.type == ">=" || node.type == "<=" || node.type == "==" || node.type == "!=" || node.type == "AND" || node.type == "OR")
     {
         tri_operator(node);
-    }  
+    }
     else if (node.type == "function_call")
     {
-        // FIXME: Add saving registers and stuff this isn't done
-        std::string function_to_call = node.branches[0].attr;
-        std::string label_of_function_to_call = table.get_entry(function_to_call)->assembly_label;
-        // Save all variables on stack
-        auto actuals = node.branches[1];
-        for (uint i = 0; i < actuals.branches.size(); i++)
-        {
-            auto actual = actuals.branches[i];
-            if (actual.type == "string")
-            {
-                std::string label = insert_into_data(actual.attr);
-                mips_instruction("la", "$a" + std::to_string(i), label);
-            } // Deal with other kinds of acutals
-        }
-        mips_instruction("jal", label_of_function_to_call);
-        // Get all variables from stack
+        function_call(node);
     }
+}
+
+void Synthesis::function_call(Tree& node) {
+    // FIXME: Add saving registers and stuff this isn't done
+    std::string function_to_call = node.branches[0].attr;
+    SymbolEntry *entry = semantic.get_entry(function_to_call);
+    std::string label_of_function_to_call = entry->assembly_label;
+    // Save all variables on stack
+    node.stack_count = register_count;
+    auto actuals = node.branches[1];
+    for (uint i = 0; i < actuals.branches.size(); i++)
+    {
+        auto actual = actuals.branches[i];
+        if (actual.type == "string")
+        {
+            std::string label = insert_into_data(actual.attr);
+            mips_instruction("la", "$a" + std::to_string(i), label);
+        } else {
+            mips_instruction("move", "$" + std::to_string(i+4), actual.id_register);
+        }
+    }
+
+    dump_registers(node.stack_count);
+    mips_instruction("jal", label_of_function_to_call);
+    node.id_register = "$v0";
+    // Get all variables from stack
+    recover_registers(node.stack_count);
+}
+
+void Synthesis::dump_registers(uint count){
+ //  From $2 - $7  plus pool of registers 8-> not including count,
+    text += "# REGISTER DUMP\n";
+    for (uint i =4; i < count; i++){
+        mips_instruction("addi", "$sp","$sp", "-4");
+        mips_instruction("sw","$"+std::to_string(i), "0($sp)");
+    }
+    text += "# REGISTER DUMP COMPLETE\n";
+
+    register_count = 8;
+}
+
+void Synthesis::recover_registers(uint count){
+    text += "# REGISTER RECOVERY\n";
+    for (uint i = count-1; i > 3; i--){
+        mips_instruction("lw","$"+std::to_string(i), "0($sp)");
+        mips_instruction("addi", "$sp","$sp", "4");
+    }
+    text += "# REGISTER RECOVERY COMPLETE\n";
+    register_count = count;
 }
 
 void Synthesis::tri_operator(Tree& node)
@@ -309,7 +364,7 @@ void Synthesis::tri_operator(Tree& node)
 
 std::string Synthesis::insert_into_data(std::string str)
 {
-    std::string label_string = get_label();
+    std::string label_string = "string_" + get_label();
     data += label_string + ":\n";
     data += convert_string_to_bytes(str);
     return label_string;
@@ -359,6 +414,7 @@ std::string Synthesis::convert_string_to_bytes(std::string& str)
         if (i != str.size() - 1)
             return_string += ", ";
     }
+    return_string += " # " + str;
     return_string += "\n.align 2\n";
     return return_string;
 }

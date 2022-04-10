@@ -3,20 +3,23 @@
 #include <string>
 #include "tree.hpp"
 #include "symboltable.hpp"
+#include "semantic.hpp"
 
 class Synthesis{
 public:
-    Synthesis(Tree &program, SymbolTable &table);
+    Synthesis(Semantic & semantic, Tree & program);
     ~Synthesis() = default;
 
+    
+    Semantic & semantic;
     Tree &program_tree;
-    SymbolTable &table;
     std::string assembly;
     std::string data;
     std::string text;
     int label_count = 0;
-    int register_count = 0;
+    int register_count = 8;
     std::string while_loop_leave_label;
+    std::string return_label;
 
 private:
     void synthesize(Tree & node);
@@ -30,6 +33,11 @@ private:
     void evaluate_expressions(Tree &node);
     void tri_operator(Tree &node);
     void comparison_operator(Tree &node);
+    void function_call (Tree &node);
+    void dump_registers(uint count);
+    void recover_registers(uint count);
+    void global_pass(Tree & node);
+    void add_return_label();
     std::string get_register();
 };
 #endif

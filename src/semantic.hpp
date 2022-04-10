@@ -15,6 +15,7 @@ public:
 
     Tree &program;
     SymbolTable table;
+    SymbolEntry *get_entry(std::string name);
 
 protected:
 private:
@@ -39,7 +40,6 @@ private:
     Tree *get_id(Tree &node);
     std::string get_type(Tree &node, bool is_function = false);
     std::string get_return_type();
-    SymbolEntry *get_entry(std::string name);
     bool is_operator(Tree &node);
 
     int scope_depth = 0;

@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     Semantic semantic_analysis = Semantic(program);
     std::cout << "AST: " << std::endl;
     program.print(0);
-    auto synt = Synthesis(semantic_analysis.program, semantic_analysis.table);
+    auto synt = Synthesis(semantic_analysis, semantic_analysis.program);
     
     std::cout << "Symbol Table: " << std::endl;
     std::cout << semantic_analysis.table.print();

@@ -15,6 +15,7 @@ public:
     std::string type;
     std::string sig;
     std::string id_register;
+    int stack_count; // Use for recovering stack
     SymbolEntry *sym = nullptr;
 
     void print(int tab_amount)
