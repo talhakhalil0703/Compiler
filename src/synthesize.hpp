@@ -16,6 +16,7 @@ public:
     std::string text;
     int label_count = 0;
     int register_count = 0;
+    std::string while_loop_leave_label;
 
 private:
     void synthesize(Tree & node);

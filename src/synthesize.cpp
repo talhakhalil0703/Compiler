@@ -74,8 +74,8 @@ void Synthesis::synthesize(Tree& node)
     }
     else if (node.type == "if_else")
     {
-        std::string else_label = get_label();
-        std::string done_label = get_label();
+        std::string else_label = "else_" + get_label();
+        std::string done_label = "end_if" + get_label();
         // Evalulate expression
         evaluate_expressions(node.branches[0]);
         //Test expression
@@ -88,15 +88,16 @@ void Synthesis::synthesize(Tree& node)
         add_label(done_label);
     }
     else if (node.type == "if") {
-        std::string label = get_label();
+        std::string label = "end_if_" + get_label();
         evaluate_expressions(node.branches[0]);
         mips_instruction("beqz", node.branches[0].id_register, label);
         //Statement synthesis? like the if statment block synthesis
         synthesize(node.branches[1]);
         add_label(label);
     } else if (node.type == "while"){
-        std::string start_label = get_label();
-        std::string exit_label = get_label();
+        std::string start_label = "while_" + get_label();
+        std::string exit_label = "while_exit_" + get_label();
+        while_loop_leave_label = exit_label;
         add_label(start_label);
         evaluate_expressions(node.branches[0]);
         mips_instruction("beqz", node.branches[0].id_register, exit_label);
@@ -104,6 +105,8 @@ void Synthesis::synthesize(Tree& node)
         mips_instruction("j", start_label);
         add_label(exit_label);
 
+    } else if (node.type == "break"){
+        mips_instruction("j", while_loop_leave_label);
     }
     else if (node.type == "variable_declaration") {
         // TODO: Global ids?
