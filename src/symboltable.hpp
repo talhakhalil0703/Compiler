@@ -45,6 +45,7 @@ public:
     std::string type;
     std::string return_type;
     std::string assembly_label;
+    std::string register_id;
     SymbolTable *inner_scope = nullptr;
 
     std::string print(int tab_amount = 0);

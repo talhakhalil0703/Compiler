@@ -1,6 +1,6 @@
 #include "synthesize.hpp"
 
-Synthesis::Synthesis(Tree &tree, SymbolTable &symbol_table) : program_tree(tree), table(symbol_table)
+Synthesis::Synthesis(Tree& tree, SymbolTable& symbol_table) : program_tree(tree), table(symbol_table)
 {
     run_time_libraries();
     synthesize(program_tree);
@@ -64,32 +64,13 @@ void Synthesis::run_time_libraries()
     table.get_entry("printi")->assembly_label = "Lprintci";
 }
 
-void Synthesis::synthesize(Tree &node)
+void Synthesis::synthesize(Tree& node)
 {
     if (node.type == "main_declaration")
     {
         text += ".globl main\n";
         add_label("main");
         synthesize(node.branches[3]); //block node
-    }
-    else if (node.type == "function_call")
-    {
-        // FIXME: Add saving registers and stuff this isn't done
-        std::string function_to_call = node.branches[0].attr;
-        std::string label_of_function_to_call = table.get_entry(function_to_call)->assembly_label;
-        // Save all variables on stack
-        auto actuals = node.branches[1];
-        for (uint i = 0; i < actuals.branches.size(); i++)
-        {
-            auto actual = actuals.branches[i];
-            if (actual.type == "string")
-            {
-                std::string label = insert_into_data(actual.attr);
-                mips_instruction("la", "$a" + std::to_string(i), label);
-            } // Deal with other kinds of acutals
-        }
-        mips_instruction("jal", label_of_function_to_call);
-        // Get all variables from stack
     }
     else if (node.type == "if_else")
     {
@@ -105,14 +86,22 @@ void Synthesis::synthesize(Tree &node)
         add_label(else_label);
         synthesize(node.branches[2]);
         add_label(done_label);
-    } else if (node.type == "if"){
+    }
+    else if (node.type == "if") {
         std::string label = get_label();
         evaluate_expressions(node.branches[0]);
         mips_instruction("beqz", node.branches[0].id_register, label);
         //Statement synthesis? like the if statment block synthesis
         synthesize(node.branches[1]);
         add_label(label);
-    } else if (node.type == "block" || node.type == "program"|| node.type =="statement"){
+    }
+    else if (node.type == "variable_declaration") {
+        std::string reg = get_register();
+        node.branches[1].sym->register_id = reg;
+    } else if(node.type == "statement"){
+        evaluate_expressions(node.branches[0]);
+    }
+    else if (node.type == "block" || node.type == "program") {
         for (uint i = 0; i < node.branches.size(); i++)
         {
             synthesize(node.branches[i]);
@@ -127,7 +116,7 @@ void Synthesis::synthesize(Tree &node)
     }
 }
 
-void preOrderTraversal(Tree &node, void *func(Tree &node))
+void preOrderTraversal(Tree& node, void* func(Tree& node))
 {
     func(node);
 
@@ -137,7 +126,7 @@ void preOrderTraversal(Tree &node, void *func(Tree &node))
     }
 }
 
-void postOrderTraversal(Tree &node, void *func(Tree &node))
+void postOrderTraversal(Tree& node, void* func(Tree& node))
 {
     for (uint i = 0; i < node.branches.size(); i++)
     {
@@ -153,7 +142,7 @@ std::string Synthesis::get_register()
     return "$" + std::to_string(8 + register_count++);
 }
 
-void Synthesis::evaluate_expressions(Tree &node)
+void Synthesis::evaluate_expressions(Tree& node)
 {
     // std::string return_string = "";
     std::string node_type = node.type;
@@ -162,13 +151,18 @@ void Synthesis::evaluate_expressions(Tree &node)
         std::string reg = get_register();
         mips_instruction("li", reg, node.attr);
         node.id_register = reg;
-    } else if(node_type == "false"){
+    }
+    else if (node_type == "false") {
         std::string reg = get_register();
         mips_instruction("li", reg, "0");
         node.id_register = reg;
-    } else if(node_type == "true"){
+    }
+    else if (node_type == "true") {
         std::string reg = get_register();
         mips_instruction("li", reg, "1");
+        node.id_register = reg;
+    } else if (node_type == "id"){
+        std::string reg = node.sym->register_id;
         node.id_register = reg;
     }
 
@@ -201,10 +195,29 @@ void Synthesis::evaluate_expressions(Tree &node)
     else if (node.type == "+" || node.type == "*" || node.type == "/" || node.type == "%" || node.type == "<" || node.type == ">" || node.type == ">=" || node.type == "<=" || node.type == "==" || node.type == "!=" || node.type == "AND" || node.type == "OR")
     {
         tri_operator(node);
+    }  
+    else if (node.type == "function_call")
+    {
+        // FIXME: Add saving registers and stuff this isn't done
+        std::string function_to_call = node.branches[0].attr;
+        std::string label_of_function_to_call = table.get_entry(function_to_call)->assembly_label;
+        // Save all variables on stack
+        auto actuals = node.branches[1];
+        for (uint i = 0; i < actuals.branches.size(); i++)
+        {
+            auto actual = actuals.branches[i];
+            if (actual.type == "string")
+            {
+                std::string label = insert_into_data(actual.attr);
+                mips_instruction("la", "$a" + std::to_string(i), label);
+            } // Deal with other kinds of acutals
+        }
+        mips_instruction("jal", label_of_function_to_call);
+        // Get all variables from stack
     }
 }
 
-void Synthesis::tri_operator(Tree &node)
+void Synthesis::tri_operator(Tree& node)
 {
     std::string arg1 = node.branches[0].id_register;
     std::string arg2 = node.branches[1].id_register;
@@ -292,7 +305,7 @@ std::string Synthesis::get_label()
     return "L" + std::to_string(label_count++);
 }
 
-std::string Synthesis::convert_string_to_bytes(std::string &str)
+std::string Synthesis::convert_string_to_bytes(std::string& str)
 {
     // TODO: Null char check needed? Maybe
     std::string return_string = ".byte ";
