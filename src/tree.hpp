@@ -14,6 +14,7 @@ public:
     std::string attr;     // "" indicates it has no attribute
     std::string type;
     std::string sig;
+    std::string id_register;
     SymbolEntry *sym = nullptr;
 
     void print(int tab_amount)
