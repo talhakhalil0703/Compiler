@@ -94,8 +94,19 @@ void Synthesis::synthesize(Tree& node)
         //Statement synthesis? like the if statment block synthesis
         synthesize(node.branches[1]);
         add_label(label);
+    } else if (node.type == "while"){
+        std::string start_label = get_label();
+        std::string exit_label = get_label();
+        add_label(start_label);
+        evaluate_expressions(node.branches[0]);
+        mips_instruction("beqz", node.branches[0].id_register, exit_label);
+        synthesize(node.branches[1]);
+        mips_instruction("j", start_label);
+        add_label(exit_label);
+
     }
     else if (node.type == "variable_declaration") {
+        // TODO: Global ids?
         std::string reg = get_register();
         node.branches[1].sym->register_id = reg;
     } else if(node.type == "statement"){
@@ -162,6 +173,7 @@ void Synthesis::evaluate_expressions(Tree& node)
         mips_instruction("li", reg, "1");
         node.id_register = reg;
     } else if (node_type == "id"){
+        // TODO: Global ids?
         std::string reg = node.sym->register_id;
         node.id_register = reg;
     }
@@ -314,7 +326,6 @@ std::string Synthesis::convert_string_to_bytes(std::string& str)
         int x = int(str[i]);
         if (x == 92)
         { // If x is a slash
-            i++;
             i++;
             x = int(str[i]);
             switch (x)
