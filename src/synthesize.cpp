@@ -1,6 +1,6 @@
 #include "synthesize.hpp"
 
-Synthesis::Synthesis(Semantic& sem, Tree & prog) : semantic(sem), program_tree(prog)
+Synthesis::Synthesis(Semantic& sem, Tree& prog) : semantic(sem), program_tree(prog)
 {
     run_time_libraries();
     global_pass(program_tree);
@@ -18,27 +18,27 @@ void Synthesis::print_assembly()
 
 void Synthesis::run_time_libraries()
 {
-    std::string return_string = "jr $ra\n";
-    std::string true_string = ".byte 84, 82, 85, 69\n";
-    std::string false_string = ".byte 70, 65, 76, 83, 69\n";
-    std::string align = ".align 2\n";
+    std::string return_string = "\tjr $ra\n";
+    std::string true_string = "\t.byte 84, 82, 85, 69\n";
+    std::string false_string = "\t.byte 70, 65, 76, 83, 69\n";
+    std::string align = "\t.align 2\n";
     std::string dot_data = ".data\n";
     std::string dot_text = ".text\n";
     std::string halt = "Lhalt:\n";
     std::string get_char = "Lgetchar:\n";
-    std::string beq = "beq $a0, $zero, Lfalse\n";
-    std::string syscall = "syscall\n";
+    std::string beq = "\tbeq $a0, $zero, Lfalse\n";
+    std::string syscall = "\tsyscall\n";
     std::string lfalse = "Lfalse:\n";
     std::string error = "error:\n";
-    std::string v0_string = "li $v0, ";
+    std::string v0_string = "\tli $v0, ";
     std::string lprint = "Lprint";
-    std::string j = "j ";
-    std::string jal = "jal ";
-    std::string la_a0 = "la $a0, ";
+    std::string j = "\tj ";
+    std::string jal = "\tjal ";
+    std::string la_a0 = "\tla $a0, ";
 
     data = dot_data + "true_boolean:\n" + true_string + align + "false_boolean:\n" + false_string + align;
     data += "div_by_zero:\n";
-    data += ".byte  100 , 105 , 118 , 105 , 115 , 105 , 111 , 110 , 32 , 98 , 121 , 32 , 122 , 101 , 114 , 111 , 0\n";
+    data += "\t.byte  100 , 105 , 118 , 105 , 115 , 105 , 111 , 110 , 32 , 98 , 121 , 32 , 122 , 101 , 114 , 111 , 0\n";
     data += align;
 
     text = dot_text + lprint + "i:\n";
@@ -55,8 +55,8 @@ void Synthesis::run_time_libraries()
     text += lprint + "b2:\n";
     text += v0_string + "4\n";
     text += syscall + return_string + halt + v0_string + "10\n";
-    text += syscall + error + "jal Lprints\n";
-    text += j + "LHalt\n\n";
+    text += syscall + error + "\tjal Lprints\n";
+    text += j + "Lhalt\n\n";
 
     semantic.get_entry("getchar")->assembly_label = "Lgetchar";
     semantic.get_entry("halt")->assembly_label = "Lhalt";
@@ -66,31 +66,32 @@ void Synthesis::run_time_libraries()
     semantic.get_entry("printi")->assembly_label = "Lprinti";
 }
 
-bool Synthesis::part_of_runtime(std::string &str){
-    if (str == "getchar" || str == "halt" || str == "printb" || str == "printc" || str == "printi"|| str =="prints"){
+bool Synthesis::part_of_runtime(std::string& str) {
+    if (str == "getchar" || str == "halt" || str == "printb" || str == "printc" || str == "printi" || str == "prints") {
         return true;
     }
     return false;
 }
-void Synthesis::add_return_label(){
+void Synthesis::add_return_label() {
     add_label("return_label");
     mips_instruction("lw", "$ra", "0($sp)");
     mips_instruction("addu", "$sp", "$sp", "4");
     mips_instruction("jr", "$ra");
 }
 
-void Synthesis::global_pass(Tree& program){
-    for (uint i = 0; i < program.branches.size(); i++){
-        Tree & node = program.branches[i];
-        if (node.type == "function_declaration"){
+void Synthesis::global_pass(Tree& program) {
+    for (uint i = 0; i < program.branches.size(); i++) {
+        Tree& node = program.branches[i];
+        if (node.type == "function_declaration") {
             std::string id = node.branches[1].attr;
-            std::string label = "function_" + id;
+            std::string label = "FUNCTION_" + id;
             node.branches[1].sym->assembly_label = label;
-        } else if (node.type == "global_variable_declaration"){
+        }
+        else if (node.type == "global_variable_declaration") {
             std::string id = node.branches[1].attr;
             std::string label = "GLOBAL_VAR_" + id + get_label();
-            data += label + ": .word 2";
-            mips_instruction("la", "$a0", label );
+            data += label + ": .word 2\n";
+            mips_instruction("la", "$a0", label);
             mips_instruction("li" "$a1", "0");
             mips_instruction("sw" "$a1", "0($a0)");
             node.branches[1].sym->assembly_label = label;
@@ -106,15 +107,16 @@ void Synthesis::synthesize(Tree& node)
         add_label("main");
         synthesize(node.branches[3]); //block node
         mips_instruction("j", "Lhalt");
-    } else if (node.type == "function_declaration"){
-        std::string label= node.branches[1].sym->assembly_label;
+    }
+    else if (node.type == "function_declaration") {
+        std::string label = node.branches[1].sym->assembly_label;
         text += ".globl " + label + "\n";
         add_label(label);
         mips_instruction("subu", "$sp", "$sp", "4");
         mips_instruction("sw", "$ra", "0($sp)");
         synthesize(node.branches[2]);
         synthesize(node.branches[3]);
-        if (node.branches[0].type == "void"){
+        if (node.branches[0].type == "void") {
             mips_instruction("j", "return_label");
         }
     }
@@ -125,7 +127,7 @@ void Synthesis::synthesize(Tree& node)
         // Evalulate expression
         evaluate_expressions(node.branches[0]);
         //Test expression
-        mips_instruction("beqz", node.branches[0].id_register, else_label);
+        mips_instruction("beqz", get_register_name(node.branches[0].id_register), else_label);
         // if statement
         synthesize(node.branches[1]);
         mips_instruction("j", done_label);
@@ -136,7 +138,7 @@ void Synthesis::synthesize(Tree& node)
     else if (node.type == "if") {
         std::string label = "end_if_" + get_label();
         evaluate_expressions(node.branches[0]);
-        mips_instruction("beqz", node.branches[0].id_register, label);
+        mips_instruction("beqz", get_register_name(node.branches[0].id_register), label);
         //Statement synthesis? like the if statment block synthesis
         synthesize(node.branches[1]);
         add_label(label);
@@ -147,22 +149,22 @@ void Synthesis::synthesize(Tree& node)
         while_loop_leave_label = exit_label;
         add_label(start_label);
         evaluate_expressions(node.branches[0]);
-        mips_instruction("beqz", node.branches[0].id_register, exit_label);
+        mips_instruction("beqz", get_register_name(node.branches[0].id_register), exit_label);
         synthesize(node.branches[1]);
         mips_instruction("j", start_label);
         add_label(exit_label);
 
-    } else if(node.type == "return"){
+    }
+    else if (node.type == "return") {
         evaluate_expressions(node.branches[0]);
-        mips_instruction("move", "$v0", node.branches[0].id_register);
+        mips_instruction("move", "$v0", get_register_name(node.branches[0].id_register));
         mips_instruction("j", "return_label");
     }
     else if (node.type == "break") {
         mips_instruction("j", while_loop_leave_label);
     }
     else if (node.type == "variable_declaration") {
-        // TODO: Global ids?
-        std::string reg = get_register();
+        SingleRegister reg = get_register();
         node.branches[1].sym->register_id = reg;
     }
     else if (node.type == "statement") {
@@ -173,21 +175,28 @@ void Synthesis::synthesize(Tree& node)
         {
             synthesize(node.branches[i]);
         }
-    } else if (node.type == "formals"){
-        for (uint i = 0; i < node.branches.size(); i++){
-            Tree & formal = node.branches[i];
-            std::string reg = get_register();
-            mips_instruction("move", reg, "$a"+std::to_string(i));
+    }
+    else if (node.type == "formals") {
+        for (uint i = 0; i < node.branches.size(); i++) {
+            Tree& formal = node.branches[i];
+            SingleRegister reg = get_register();
+            mips_instruction("move", get_register_name(reg), "$a" + std::to_string(i));
             formal.branches[1].sym->register_id = reg;
         }
     }
 
 }
 
-std::string Synthesis::get_register()
+SingleRegister Synthesis::get_register()
 {
-    // TODO: Might want to make this more complex later on
-    return "$" + std::to_string(register_count++);
+    return register_pool.get_register();
+}
+
+void Synthesis::free_node_register(Tree& node) {
+    if (node.type == "id") {
+        return;
+    }
+    register_pool.free_register(node.id_register);
 }
 
 void Synthesis::evaluate_expressions(Tree& node)
@@ -196,30 +205,30 @@ void Synthesis::evaluate_expressions(Tree& node)
     std::string node_type = node.type;
     if (node_type == "number")
     {
-        std::string reg = get_register();
-        mips_instruction("li", reg, node.attr);
+        SingleRegister reg = get_register();
+        mips_instruction("li", get_register_name(reg), node.attr);
         node.id_register = reg;
     }
     else if (node_type == "false") {
-        std::string reg = get_register();
-        mips_instruction("li", reg, "0");
+        SingleRegister reg = get_register();
+        mips_instruction("li", get_register_name(reg), "0");
         node.id_register = reg;
     }
     else if (node_type == "true") {
-        std::string reg = get_register();
-        mips_instruction("li", reg, "1");
+        SingleRegister reg = get_register();
+        mips_instruction("li", get_register_name(reg), "1");
         node.id_register = reg;
     }
     else if (node_type == "id") {
-        // TODO: Global ids?
-        std::string reg = node.sym->register_id;
-        if (node.sym->kind == Kind::global_var){
+        SingleRegister reg = node.sym->register_id;
+        if (node.sym->kind == Kind::global_var) {
             reg = get_register();
-            mips_instruction("lw", reg, node.sym->assembly_label);
-        } else {
+            mips_instruction("lw", get_register_name(reg), node.sym->assembly_label);
+        }
+        else {
             reg = node.sym->register_id;
         }
-        
+
         node.id_register = reg;
     }
 
@@ -230,20 +239,23 @@ void Synthesis::evaluate_expressions(Tree& node)
 
     if (node.type == "=")
     {
-        std::string id_reg = node.branches[0].id_register;
-        std::string to_assign_reg = node.branches[1].id_register;
-        if (node.branches[0].sym->kind == Kind::global_var){
+        SingleRegister id_reg = node.branches[0].id_register;
+        SingleRegister to_assign_reg = node.branches[1].id_register;
+        if (node.branches[0].sym->kind == Kind::global_var) {
             id_reg = get_register();
-            mips_instruction("la", id_reg, node.branches[0].sym->assembly_label);
-            mips_instruction("sw", to_assign_reg, "0("+id_reg+")");
+            mips_instruction("la", get_register_name(id_reg), node.branches[0].sym->assembly_label);
+            mips_instruction("sw", get_register_name(to_assign_reg), "0(" + get_register_name(id_reg) + ")");
             //Free this local register
             register_count--;
-        } else {
-
-            mips_instruction("move", id_reg, to_assign_reg);
         }
+        else {
+
+            mips_instruction("move", get_register_name(id_reg), get_register_name(to_assign_reg));
+        }
+
+        free_node_register(node.branches[1]);
     }
-    else if (node.type == "-" || node.type == "!")
+    else if (node.type == "!")
     {
         unary_operator(node);
     }
@@ -251,97 +263,121 @@ void Synthesis::evaluate_expressions(Tree& node)
     {
         tri_operator(node);
     }
+    else if (node.type == "-") {
+        min_operator(node);
+    }
     else if (node.type == "function_call")
     {
         function_call(node);
     }
 }
 
-void Synthesis::unary_operator(Tree & node)
+void Synthesis::unary_operator(Tree& node)
 {
-    std::string id_reg = node.branches[0].id_register;
-    std::string dest_reg = get_register();
-    node.id_register = dest_reg;
-    if (node.type == "-"){
-        mips_instruction("negu", dest_reg, id_reg);
-    } else if (node.type == "!"){
-        mips_instruction("xori", dest_reg, id_reg, "1");
+
+    if (node.type == "!") {
+        SingleRegister id_reg = node.branches[0].id_register;
+        SingleRegister dest_reg = get_register();
+        node.id_register = dest_reg;
+        mips_instruction("xori", get_register_name(dest_reg), get_register_name(id_reg), "1");
+        free_node_register(node.branches[0]);
     }
 
+
+}
+void Synthesis::min_operator(Tree& node) {
+    if (node.type == "-") {
+        SingleRegister dest = get_register();
+        node.id_register = dest;
+        SingleRegister arg1 = node.branches[0].id_register;
+        if (node.branches.size() == 1) {
+            mips_instruction("negu", get_register_name(dest), get_register_name(arg1));
+        }
+        else if (node.branches.size() == 2) {
+            SingleRegister arg2 = node.branches[1].id_register;
+            mips_instruction("subu", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
+            free_node_register(node.branches[1]);
+
+        }
+        free_node_register(node.branches[0]);
+    }
 }
 
 void Synthesis::tri_operator(Tree& node)
 {
-    std::string arg1 = node.branches[0].id_register;
-    std::string arg2 = node.branches[1].id_register;
+    SingleRegister arg1 = node.branches[0].id_register;
+    SingleRegister arg2 = node.branches[1].id_register;
 
-    std::string dest = get_register();
+    SingleRegister dest = get_register();
     if (node.type == "*")
     {
         // TODO: Check for overflow?
-        mips_instruction("mul", dest, arg1, arg2);
+        mips_instruction("mul", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
     }
     else if (node.type == "/" || node.type == "%")
     {
         std::string not_div_by_zero = get_label();
-        mips_instruction("bnez", arg2, not_div_by_zero);
+        mips_instruction("bnez", get_register_name(arg2), not_div_by_zero);
         mips_instruction("la", "$a0", "div_by_zero");
         mips_instruction("j", "error");
         add_label(not_div_by_zero);
         if (node.type == "/")
         {
             // TODO: Check for overflow?
-            mips_instruction("div", dest, arg1, arg2);
+            mips_instruction("div", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
         }
         else
         {
-            mips_instruction("rem", dest, arg1, arg2);
+            mips_instruction("rem", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
         }
     }
     else if (node.type == "+")
     {
-        mips_instruction("addu", dest, arg1, arg2);
+        mips_instruction("addu", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
     }
     else if (node.type == "<")
     {
-        mips_instruction("slt", dest, arg1, arg2);
+        mips_instruction("slt", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
     }
     else if (node.type == ">")
     {
-        mips_instruction("sgt", dest, arg1, arg2);
+        mips_instruction("sgt", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
     }
     else if (node.type == "<=")
     {
-        mips_instruction("sle", dest, arg1, arg2);
+        mips_instruction("sle", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
     }
     else if (node.type == ">=")
     {
-        mips_instruction("sge", dest, arg1, arg2);
+        mips_instruction("sge", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
     }
     else if (node.type == "==")
     {
-        mips_instruction("seq", dest, arg1, arg2);
+        mips_instruction("seq", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
     }
     else if (node.type == "!=")
     {
-        mips_instruction("sne", dest, arg1, arg2);
+        mips_instruction("sne", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
     }
     else if (node.type == "AND")
     {
         std::string label = get_label();
-        mips_instruction("move", dest, arg1);
-        mips_instruction("beqz", dest, label);
-        mips_instruction("move", dest, arg2);
+        mips_instruction("move", get_register_name(dest), get_register_name(arg1));
+        mips_instruction("beqz", get_register_name(dest), label);
+        mips_instruction("move", get_register_name(dest), get_register_name(arg2));
         add_label(label);
     }
     else if (node.type == "OR")
     {
         std::string label = get_label();
-        mips_instruction("move", dest, arg1);
-        mips_instruction("bnez", dest, label);
-        mips_instruction("move", dest, arg2);
+        mips_instruction("move", get_register_name(dest), get_register_name(arg1));
+        mips_instruction("bnez", get_register_name(dest), label);
+        mips_instruction("move", get_register_name(dest), get_register_name(arg2));
         add_label(label);
     }
+    free_node_register(node.branches[0]);
+    free_node_register(node.branches[1]);
+
     node.id_register = dest;
 }
 
@@ -349,7 +385,7 @@ void Synthesis::tri_operator(Tree& node)
 void Synthesis::function_call(Tree& node) {
     // FIXME: Add saving registers and stuff this isn't done
     std::string function_to_call = node.branches[0].attr;
-    SymbolEntry *entry = semantic.get_entry(function_to_call);
+    SymbolEntry* entry = semantic.get_entry(function_to_call);
     std::string label_of_function_to_call = entry->assembly_label;
     // Save all variables on stack
     node.stack_count = register_count;
@@ -361,42 +397,63 @@ void Synthesis::function_call(Tree& node) {
         {
             std::string label = insert_into_data(actual.attr);
             mips_instruction("la", "$a" + std::to_string(i), label);
-        } else {
-            mips_instruction("move", "$" + std::to_string(i+4), actual.id_register);
+        }
+        else {
+            mips_instruction("move", "$a" + std::to_string(i), get_register_name(actual.id_register));
         }
     }
 
-    if(!part_of_runtime(function_to_call)){
-        dump_registers(node.stack_count);
+    int arg_amount = node.branches[1].branches.size();
+
+    if (!part_of_runtime(function_to_call)) {
+        dump_registers(arg_amount);
     }
+    previous_pool = register_pool;
+    register_pool = RegisterPool();
     mips_instruction("jal", label_of_function_to_call);
-    node.id_register = "$v0";
+
     // Get all variables from stack
-    if (!part_of_runtime(function_to_call)){
-        recover_registers(node.stack_count);
+    register_pool = previous_pool;
+    if (!part_of_runtime(function_to_call)) {
+        recover_registers(arg_amount);
+    }
+
+    if (node.branches[0].sym->return_type != "void") {
+        SingleRegister reg = get_register();
+        mips_instruction("move", get_register_name(reg), get_register_name(SingleRegister::$V0));
+        node.id_register = reg;
     }
 }
 
-void Synthesis::dump_registers(uint count){
- //  From $2 - $7  plus pool of registers 8-> not including count,
+void Synthesis::dump_registers(uint arg_amount) {
+    //  From $2 - $7  plus pool of registers 8-> not including count,
     text += "# REGISTER DUMP\n";
-    for (uint i =4; i < count; i++){
-        mips_instruction("addi", "$sp","$sp", "-4");
-        mips_instruction("sw","$"+std::to_string(i), "0($sp)");
+    for (uint i = 0; i < arg_amount; i++) {
+        mips_instruction("addi", "$sp", "$sp", "-4");
+        mips_instruction("sw", "$a" + std::to_string(i), "0($sp)");
+    }
+
+    for (auto itr = register_pool.used.begin(); itr != register_pool.used.end(); itr++) {
+        mips_instruction("addi", "$sp", "$sp", "-4");
+        mips_instruction("sw", get_register_name(*itr), "0($sp)");
     }
     text += "# REGISTER DUMP COMPLETE\n";
 
     register_count = 8;
 }
 
-void Synthesis::recover_registers(uint count){
+void Synthesis::recover_registers(uint arg_amount) {
     text += "# REGISTER RECOVERY\n";
-    for (uint i = count-1; i > 3; i--){
-        mips_instruction("lw","$"+std::to_string(i), "0($sp)");
-        mips_instruction("addi", "$sp","$sp", "4");
+
+    for (auto itr = register_pool.used.rbegin(); itr != register_pool.used.rend(); itr++) {
+        mips_instruction("lw", get_register_name(*itr), "0($sp)");
+        mips_instruction("addi", "$sp", "$sp", "4");
+    }
+    for (int i = arg_amount-1; i > -1; i--) {
+        mips_instruction("lw", "$a" + std::to_string(i), "0($sp)");
+        mips_instruction("addi", "$sp", "$sp", "4");
     }
     text += "# REGISTER RECOVERY COMPLETE\n";
-    register_count = count;
 }
 
 std::string Synthesis::insert_into_data(std::string str)
@@ -415,7 +472,7 @@ std::string Synthesis::get_label()
 std::string Synthesis::convert_string_to_bytes(std::string& str)
 {
     // TODO: Null char check needed? Maybe
-    std::string return_string = ".byte ";
+    std::string return_string = "\t.byte ";
     for (uint i = 0; i < str.size(); i++)
     {
         int x = int(str[i]);
@@ -451,17 +508,17 @@ std::string Synthesis::convert_string_to_bytes(std::string& str)
         if (i != str.size() - 1)
             return_string += ", ";
     }
-    if (int(str[str.size()-1]) != 0){
+    if (int(str[str.size() - 1]) != 0) {
         return_string += ", 0";
     }
     return_string += " # " + str;
-    return_string += "\n.align 2\n";
+    return_string += "\n\t.align 2\n";
     return return_string;
 }
 
 void Synthesis::mips_instruction(std::string instr, std::string c2, std::string c3, std::string c4)
 {
-    text += instr + " " + c2;
+    text += "\t" + instr + " " + c2;
     if (c3 != "")
     {
         text += ", " + c3;

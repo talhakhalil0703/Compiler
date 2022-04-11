@@ -4,6 +4,8 @@
 #include "tree.hpp"
 #include "symboltable.hpp"
 #include "semantic.hpp"
+#include "register.hpp"
+
 
 class Synthesis{
 public:
@@ -20,7 +22,8 @@ public:
     int register_count = 8;
     std::string while_loop_leave_label;
     std::string return_label;
-
+    RegisterPool register_pool = RegisterPool();
+    RegisterPool previous_pool;
 private:
     void synthesize(Tree & node);
     void run_time_libraries();
@@ -40,6 +43,8 @@ private:
     void global_pass(Tree & node);
     void add_return_label();
     void unary_operator(Tree & node);
-    std::string get_register();
+    void min_operator(Tree & node);
+    SingleRegister get_register();
+    void free_node_register(Tree & node);
 };
 #endif

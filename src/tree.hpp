@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include "symboltable.hpp"
+#include "register.hpp"
 
 class Tree
 {
@@ -14,7 +15,7 @@ public:
     std::string attr;     // "" indicates it has no attribute
     std::string type;
     std::string sig;
-    std::string id_register;
+    SingleRegister id_register;
     int stack_count; // Use for recovering stack
     SymbolEntry *sym = nullptr;
 
