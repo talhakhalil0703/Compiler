@@ -693,19 +693,18 @@ void Semantic::extract_function_argument_type(std::string type_string, std::vect
     //Multiple
     int start = 0;
     int end = type_string.find(",");
-    while (end != -1)
-    {
-        args.push_back(type_string.substr(start, end - start));
-        start = end + 2; //account for space in between 
-        end = type_string.find(",", start);
-        type_string = type_string.substr(start, end);
+    if (end == -1 && type_string != ""){
+        args.push_back(type_string);
+        return;
     }
 
-    if(type_string.find(",") == std::string::npos){
-        if (type_string != ""){
-            args.push_back(type_string);
-        }
-        return;
+    while (end != -1)
+    {
+        start = 0; //account for space in between 
+        end = type_string.find(",");
+        args.push_back(type_string.substr(start, end - start));
+    
+        type_string = type_string.substr(end+2,type_string.size());
     }
 }
 

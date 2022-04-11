@@ -39,6 +39,7 @@ private:
     void recover_registers(uint count);
     void global_pass(Tree & node);
     void add_return_label();
+    void unary_operator(Tree & node);
     std::string get_register();
 };
 #endif
