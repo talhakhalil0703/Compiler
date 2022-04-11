@@ -480,10 +480,6 @@ void Semantic::type_checking(Tree &node)
         std::vector<std::string> type_to_check;
         for (uint i = 0; i < node.branches.size(); i++)
         {
-            if (node.branches[i].sig == "")
-            {
-                type_checking(node.branches[i]);
-            }
             type_to_check.push_back(node.branches[i].sig);
         }
 
@@ -528,13 +524,6 @@ void Semantic::type_checking(Tree &node)
         else
         {
             // No idea
-        }
-    }
-    else
-    {
-        for (uint i = 0; i < node.branches.size(); i++)
-        {
-            type_checking(node.branches[i]);
         }
     }
 }

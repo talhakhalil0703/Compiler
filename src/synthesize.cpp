@@ -31,8 +31,8 @@ void Synthesis::print_assembly()
 void Synthesis::run_time_libraries()
 {
     std::string return_string = "\tjr $ra\n";
-    std::string true_string = "\t.byte 84, 82, 85, 69\n";
-    std::string false_string = "\t.byte 70, 65, 76, 83, 69\n";
+    std::string true_string = "\t.byte 84, 82, 85, 69, 0\n";
+    std::string false_string = "\t.byte 70, 65, 76, 83, 69, 0\n";
     std::string align = "\t.align 2\n";
     std::string dot_data = ".data\n";
     std::string dot_text = ".text\n";
