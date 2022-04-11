@@ -23,13 +23,7 @@ int main(int argc, char *argv[])
     auto parser = std::make_unique<Parser>(&file);
     Tree program = parser->parse();
     Semantic semantic_analysis = Semantic(program);
-    std::cout << "AST: " << std::endl;
-    program.print(0);
     auto synt = Synthesis(semantic_analysis, semantic_analysis.program);
-    
-    std::cout << "Symbol Table: " << std::endl;
-    std::cout << semantic_analysis.table.print();
-    
     std::string s= ".s";
     std::string output = argv[1] + s;
 

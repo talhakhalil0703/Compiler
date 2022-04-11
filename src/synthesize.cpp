@@ -1,12 +1,24 @@
 #include "synthesize.hpp"
 
+// #define _DEBUG
+#ifdef _DEBUG
+#define FREE_PRINT(x) text += "# FREEING " + get_register_name(x) +"\n";
+#define TAKING_PRINT(x)  text += "# TAKING " + get_register_name(x) +"\n";
+#else
+#define FREE_PRINT(x)
+#define TAKING_PRINT(x) 
+
+#endif
+
 Synthesis::Synthesis(Semantic& sem, Tree& prog) : semantic(sem), program_tree(prog)
 {
     run_time_libraries();
     global_pass(program_tree);
     synthesize(program_tree);
     add_return_label();
+    #ifdef _DEBUG
     print_assembly();
+    #endif
 }
 
 void Synthesis::print_assembly()
@@ -117,7 +129,7 @@ void Synthesis::synthesize(Tree& node)
         for (uint i = 0; i < node.branches[2].branches.size(); i++) {
             Tree formal = node.branches[2].branches[i];
             SingleRegister reg = formal.branches[1].sym->register_id;
-            text += "# Freeing " + get_register_name(reg) + "\n";
+            FREE_PRINT(reg)
             register_pool.free_register(reg);
         }
 
@@ -207,8 +219,7 @@ void Synthesis::synthesize(Tree& node)
 SingleRegister Synthesis::get_register()
 {
     SingleRegister reg = register_pool.get_register();
-    text += "# TAKING " + get_register_name(reg) +"\n";
-    
+    TAKING_PRINT(reg)    
     return reg;
 }
 
@@ -216,7 +227,7 @@ void Synthesis::free_node_register(Tree& node) {
     if (node.type == "id" && node.sym->kind != Kind::global_var) {
         return;
     }
-    text += "# Freeing " + get_register_name(node.id_register) +"\n";
+    FREE_PRINT(node.id_register)
     register_pool.free_register(node.id_register);
 }
 
@@ -272,7 +283,7 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
                 SingleRegister temp = get_register();
                 mips_instruction("la", get_register_name(temp), node.branches[1].sym->assembly_label);
                 mips_instruction("sw", get_register_name(to_assign_reg), "0(" + get_register_name(temp) + ")");
-                text += "# Freeing " + get_register_name(temp) + "\n";
+                FREE_PRINT(temp)
                 register_pool.free_register(temp);
             }
         }
@@ -281,7 +292,7 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
             id_reg = get_register();
             mips_instruction("la", get_register_name(id_reg), node.branches[0].sym->assembly_label);
             mips_instruction("sw", get_register_name(to_assign_reg), "0(" + get_register_name(id_reg) + ")");
-            text += "# Freeing " + get_register_name(id_reg) + "\n";
+            FREE_PRINT(id_reg)
             register_pool.free_register(id_reg);
         }
         else {
@@ -291,7 +302,7 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
 
         if (parent_type != "="){
             if (node.branches[1].type == "id" && node.branches[1].sym->kind == Kind::global_var){
-                text += "# Freeing " + get_register_name(to_assign_reg) + "\n";
+                FREE_PRINT(to_assign_reg)
                 register_pool.free_register(to_assign_reg);
             } else {
                 free_node_register(node.branches[1]);
