@@ -19,7 +19,6 @@ public:
     std::string data;
     std::string text;
     int label_count = 0;
-    int register_count = 8;
     std::string while_loop_leave_label;
     std::string return_label;
     RegisterPool register_pool = RegisterPool();
@@ -34,7 +33,7 @@ private:
     std::string get_label();
     void mips_instruction(std::string instr, std::string c2, std::string c3 = "", std::string c4 ="");
     void add_label(std::string label);
-    void evaluate_expressions(Tree &node);
+    void evaluate_expressions(Tree &node, std::string parent = "");
     void tri_operator(Tree &node);
     void comparison_operator(Tree &node);
     void function_call (Tree &node);
