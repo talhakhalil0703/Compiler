@@ -1,6 +1,7 @@
 #ifndef SYNTHESIS
 #define SYNTHESIS
 #include <string>
+#include <stack>
 #include "tree.hpp"
 #include "symboltable.hpp"
 #include "semantic.hpp"
@@ -19,7 +20,7 @@ public:
     std::string data;
     std::string text;
     int label_count = 0;
-    std::string while_loop_leave_label;
+    std::stack<std::string> while_labels;
     std::string return_label;
     RegisterPool register_pool = RegisterPool();
     RegisterPool previous_pool;

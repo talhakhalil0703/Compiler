@@ -123,6 +123,11 @@ void Synthesis::synthesize(Tree& node)
 
         if (node.branches[0].type == "void") {
             mips_instruction("j", "return_label");
+        } else {
+            std::string error_string = "function \"" +node.branches[1].attr+ "\" must return a value\n";
+            std::string error_label = insert_into_data(error_string);
+            mips_instruction("la", "$a0", error_label);
+            mips_instruction("j", "error");
         }
 
     }
@@ -154,7 +159,7 @@ void Synthesis::synthesize(Tree& node)
     else if (node.type == "while") {
         std::string start_label = "while_" + get_label();
         std::string exit_label = "while_exit_" + get_label();
-        while_loop_leave_label = exit_label;
+        while_labels.push(exit_label);
         add_label(start_label);
         evaluate_expressions(node.branches[0]);
         mips_instruction("beqz", get_register_name(node.branches[0].id_register), exit_label);
@@ -162,16 +167,18 @@ void Synthesis::synthesize(Tree& node)
         synthesize(node.branches[1]);
         mips_instruction("j", start_label);
         add_label(exit_label);
-
+        while_labels.pop();
     }
     else if (node.type == "return") {
-        evaluate_expressions(node.branches[0]);
-        mips_instruction("move", "$v0", get_register_name(node.branches[0].id_register));
-        free_node_register(node.branches[0]);
+        if (node.branches.size() == 1){
+            evaluate_expressions(node.branches[0]);
+            mips_instruction("move", "$v0", get_register_name(node.branches[0].id_register));
+            free_node_register(node.branches[0]);
+        }
         mips_instruction("j", "return_label");
     }
     else if (node.type == "break") {
-        mips_instruction("j", while_loop_leave_label);
+        mips_instruction("j", while_labels.top());
     }
     else if (node.type == "variable_declaration") {
         SingleRegister reg = get_register();
@@ -206,7 +213,7 @@ SingleRegister Synthesis::get_register()
 }
 
 void Synthesis::free_node_register(Tree& node) {
-    if (node.type == "id") {
+    if (node.type == "id" && node.sym->kind != Kind::global_var) {
         return;
     }
     text += "# Freeing " + get_register_name(node.id_register) +"\n";
@@ -258,19 +265,38 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
     {
         SingleRegister id_reg = node.branches[0].id_register;
         SingleRegister to_assign_reg = node.branches[1].id_register;
+
+        if (node.branches[1].type == "id"){
+            if (node.branches[1].sym->kind == Kind::global_var){
+                to_assign_reg = get_register();
+                SingleRegister temp = get_register();
+                mips_instruction("la", get_register_name(temp), node.branches[1].sym->assembly_label);
+                mips_instruction("sw", get_register_name(to_assign_reg), "0(" + get_register_name(temp) + ")");
+                text += "# Freeing " + get_register_name(temp) + "\n";
+                register_pool.free_register(temp);
+            }
+        }
+
         if (node.branches[0].sym->kind == Kind::global_var) {
             id_reg = get_register();
             mips_instruction("la", get_register_name(id_reg), node.branches[0].sym->assembly_label);
             mips_instruction("sw", get_register_name(to_assign_reg), "0(" + get_register_name(id_reg) + ")");
+            text += "# Freeing " + get_register_name(id_reg) + "\n";
             register_pool.free_register(id_reg);
         }
         else {
 
             mips_instruction("move", get_register_name(id_reg), get_register_name(to_assign_reg));
         }
+
         if (parent_type != "="){
-            free_node_register(node.branches[1]);
-        }else {
+            if (node.branches[1].type == "id" && node.branches[1].sym->kind == Kind::global_var){
+                text += "# Freeing " + get_register_name(to_assign_reg) + "\n";
+                register_pool.free_register(to_assign_reg);
+            } else {
+                free_node_register(node.branches[1]);
+            }
+        } else {
         node.id_register = to_assign_reg;
         }
     }
@@ -432,7 +458,7 @@ void Synthesis::function_call(Tree& node) {
         recover_registers(arg_amount);
     }
 
-    if (node.branches[0].sym->return_type != "void") {
+    if (node.sig != "void") {
         SingleRegister reg = get_register();
         mips_instruction("move", get_register_name(reg), get_register_name(SingleRegister::$V0));
         node.id_register = reg;

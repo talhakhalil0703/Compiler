@@ -244,7 +244,7 @@ void Semantic::id_identification(Tree &node, SymbolTable &table)
     if (node.type == "break")
     {
         break_count++;
-        if (while_count != break_count)
+        if (break_count > while_count)
         {
             error("break must be inside 'while'", node);
         }
