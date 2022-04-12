@@ -31,8 +31,8 @@ for test in tests:
 
     test_compiler_asm = test_compiler_run.stdout
 
-    s_file = full_test_path + ".s"
-    out_file = full_test_path + ".out"
+    s_file = mark_dir + "/" + test + ".s"
+    out_file = mark_dir + "/" + test + ".out"
 
     with open(s_file, "w") as fd:
         fd.write(test_compiler_asm)
