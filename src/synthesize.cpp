@@ -146,7 +146,7 @@ void Synthesis::synthesize(Tree& node)
             mips_instruction("j", "return_label");
         }
         else {
-            std::string error_string = "function \"" + node.branches[1].attr + "\" must return a value\n";
+            std::string error_string = "function \"" + node.branches[1].attr + "\" must return a value";
             std::string error_label = insert_into_data(error_string);
             mips_instruction("la", "$a0", error_label);
             mips_instruction("j", "error");
