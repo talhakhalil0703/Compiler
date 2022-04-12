@@ -3,6 +3,7 @@ from os import listdir
 from os.path import isfile, join
 import subprocess
 import ctypes
+from subprocess import PIPE, DEVNULL, Popen
 
 # Only change these:
 DEFAULT_TIMEOUT_S = 20
@@ -49,20 +50,18 @@ for test in tests:
 
     test_spim_output = None
     try:
-        def do_spim_run(path, input_buffer):
-            from subprocess import PIPE, DEVNULL, Popen
-            
-            p = Popen(" ".join([spim, "-f", path]), stdin=PIPE, stdout=PIPE, stderr=DEVNULL, shell=True, close_fds=True)
-            out, _ = p.communicate(input_buffer, timeout=DEFAULT_TIMEOUT_S)
-            return out
 
-        test_spim_output = do_spim_run(s_file, stdin_buffer)
+        path = s_file
+        input_buffer = stdin_buffer            
+        p = Popen(" ".join([spim, "-f", path]), stdin=PIPE, stdout=PIPE, stderr=DEVNULL, shell=True, close_fds=True)
+        test_spim_output, _ = p.communicate(input_buffer, timeout=DEFAULT_TIMEOUT_S)
+
         # save spim output
         with open(out_file, "wb") as fd:
             fd.write(test_spim_output)
     except subprocess.TimeoutExpired:
         with open(out_file, "wb") as fd:
-            out, _ = subprocess.Popen.communicate()
+            out, _ = p.communicate()
             fd.write(out)
         print('\033[91m' + "FAIL (TIMEOUT)" + '\033[0m')        
        
