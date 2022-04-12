@@ -17,7 +17,6 @@ spim = "~aycock/411/bin/spim"
 
 tests = [f for f in listdir(test_dir) if not f.endswith(".s") and not f.endswith(".out")]
 tests.sort()
-test_spim_output = None
 
 for test in tests:
     full_test_path = join(test_dir, test)
@@ -48,21 +47,22 @@ for test in tests:
             stdin_buffer = "1 + 1\n (1 + 2) * (3 + 4)\n(1 + 2 * 3 / 4 * 100 / 4 * 3 - 2 + 1)\n\r\n".encode()
         else: raise Exception()
 
+    test_spim_output = None
     try:
         def do_spim_run(path, input_buffer):
             from subprocess import PIPE, DEVNULL, Popen
             
             p = Popen(" ".join([spim, "-f", path]), stdin=PIPE, stdout=PIPE, stderr=DEVNULL, shell=True, close_fds=True)
             out, _ = p.communicate(input_buffer, timeout=DEFAULT_TIMEOUT_S)
-            test_spim_output = out
             return out
 
+        test_spim_output = do_spim_run(s_file, stdin_buffer)
         # save spim output
         with open(out_file, "wb") as fd:
             fd.write(test_spim_output)
     except subprocess.TimeoutExpired:
         with open(out_file, "wb") as fd:
-            fd.write(test_spim_output)
+            fd.write(subprocess.Popen.stdout)
         print('\033[91m' + "FAIL (TIMEOUT)" + '\033[0m')        
        
         continue
