@@ -186,8 +186,9 @@ void Synthesis::synthesize(Tree& node)
         while_labels.pop();
     }
     else if (node.type == "return") {
+        NODE_LINE_NUMBER(node)
         if (node.branches.size() == 1){
-            evaluate_expressions(node.branches[0]);
+            evaluate_expressions(node.branches[0], node.type);
             mips_instruction("move", "$v0", get_register_name(node.branches[0].id_register));
             free_node_register(node.branches[0]);
         }
@@ -310,15 +311,16 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
             NODE_LINE_NUMBER(node)
         }
 
-        if (parent_type != "="){
+        if (parent_type == "=" || parent_type =="return"){
+            NODE_LINE_NUMBER(node)
+            node.id_register = arg1;
+        } else {
             if (arg_node.type == "id" && arg_node.sym->kind == Kind::global_var){
                 FREE_PRINT(arg1)
                 register_pool.free_register(arg1);
             } else {
                 free_node_register(arg_node);
             }
-        } else {
-            node.id_register = arg1;
         }
     }
     else if (node.type == "!")
