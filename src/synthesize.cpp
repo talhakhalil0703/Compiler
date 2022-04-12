@@ -37,7 +37,7 @@ void Synthesis::run_time_libraries()
     std::string dot_text = ".text\n";
     std::string halt = "Lhalt:\n";
     std::string get_char = "Lgetchar:\n";
-    std::string beq = "\tbeq $a0, $zero, Lfalse\n";
+    std::string beq = "\tbeqz $a0, Lfalse\n";
     std::string syscall = "\tsyscall\n";
     std::string lfalse = "Lfalse:\n";
     std::string error = "error:\n";
