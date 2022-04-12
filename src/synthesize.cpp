@@ -1,9 +1,11 @@
 #include "synthesize.hpp"
 
-// #define _DEBUG
+#define _DEBUG
 #ifdef _DEBUG
 #define FREE_PRINT(x) text += "# FREEING " + get_register_name(x) +"\n";
 #define TAKING_PRINT(x)  text += "# TAKING " + get_register_name(x) +"\n";
+#define NODE_LINE_NUMBER(x)  text += "# NODE LINE NUMBER " + std::to_string(x.line_number) +"\n";
+
 #else
 #define FREE_PRINT(x)
 #define TAKING_PRINT(x) 
@@ -17,7 +19,7 @@ Synthesis::Synthesis(Semantic& sem, Tree& prog) : semantic(sem), program_tree(pr
     synthesize(program_tree);
     add_return_label();
     #ifdef _DEBUG
-    print_assembly();
+    // print_assembly();
     #endif
 }
 
@@ -176,7 +178,9 @@ void Synthesis::synthesize(Tree& node)
         evaluate_expressions(node.branches[0]);
         mips_instruction("beqz", get_register_name(node.branches[0].id_register), exit_label);
         free_node_register(node.branches[0]);
-        synthesize(node.branches[1]);
+        if(node.branches.size() == 2){
+            synthesize(node.branches[1]);
+        }
         mips_instruction("j", start_label);
         add_label(exit_label);
         while_labels.pop();
@@ -280,11 +284,7 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
         if (node.branches[1].type == "id"){
             if (node.branches[1].sym->kind == Kind::global_var){
                 to_assign_reg = get_register();
-                SingleRegister temp = get_register();
-                mips_instruction("la", get_register_name(temp), node.branches[1].sym->assembly_label);
-                mips_instruction("sw", get_register_name(to_assign_reg), "0(" + get_register_name(temp) + ")");
-                FREE_PRINT(temp)
-                register_pool.free_register(temp);
+                mips_instruction("lw", get_register_name(to_assign_reg), node.branches[1].sym->assembly_label);
             }
         }
 
@@ -298,6 +298,7 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
         else {
 
             mips_instruction("move", get_register_name(id_reg), get_register_name(to_assign_reg));
+            NODE_LINE_NUMBER(node)
         }
 
         if (parent_type != "="){
@@ -332,11 +333,13 @@ void Synthesis::unary_operator(Tree& node)
 {
 
     if (node.type == "!") {
-        SingleRegister id_reg = node.branches[0].id_register;
-        SingleRegister dest_reg = get_register();
-        node.id_register = dest_reg;
-        mips_instruction("xori", get_register_name(dest_reg), get_register_name(id_reg), "1");
-        free_node_register(node.branches[0]);
+        SingleRegister arg1 = node.branches[0].id_register;
+        SingleRegister dest = get_register();
+        node.id_register = dest;
+        mips_instruction("xori", get_register_name(dest), get_register_name(arg1), "1");
+        // if (dest != arg1){
+            free_node_register(node.branches[0]);
+        // }
     }
 
 
@@ -351,9 +354,13 @@ void Synthesis::min_operator(Tree& node) {
         else if (node.branches.size() == 2) {
             SingleRegister arg2 = node.branches[1].id_register;
             mips_instruction("subu", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
-            free_node_register(node.branches[1]);
+            // if (dest != arg2){
+                free_node_register(node.branches[1]);
+            // }
         }
-        free_node_register(node.branches[0]);
+        // if (dest != arg1){
+            free_node_register(node.branches[0]);
+        // }
         node.id_register = dest;
     }
 }
@@ -421,6 +428,8 @@ void Synthesis::tri_operator(Tree& node)
         mips_instruction("beqz", get_register_name(dest), label);
         mips_instruction("move", get_register_name(dest), get_register_name(arg2));
         add_label(label);
+        // node.id_register = dest;
+        // return;
     }
     else if (node.type == "OR")
     {
@@ -429,10 +438,15 @@ void Synthesis::tri_operator(Tree& node)
         mips_instruction("bnez", get_register_name(dest), label);
         mips_instruction("move", get_register_name(dest), get_register_name(arg2));
         add_label(label);
+        // node.id_register = dest;
+        // return;
     }
-    free_node_register(node.branches[0]);
-    free_node_register(node.branches[1]);
-
+    // if (dest != arg1){
+        free_node_register(node.branches[0]);
+    // }
+    // if (dest != arg2){
+        free_node_register(node.branches[1]);
+    // }
     node.id_register = dest;
 }
 
@@ -451,10 +465,15 @@ void Synthesis::function_call(Tree& node) {
         {
             std::string label = insert_into_data(actual.attr);
             mips_instruction("la", "$a" + std::to_string(i), label);
+            NODE_LINE_NUMBER(actual);
         }
         else {
-            mips_instruction("move", "$a" + std::to_string(i), get_register_name(actual.id_register));
-            free_node_register(actuals.branches[i]);
+            SingleRegister temp = actual.id_register;
+            if (actual.type ==  "="){
+                temp = actual.branches[0].id_register;
+            }
+            mips_instruction("move", "$a" + std::to_string(i), get_register_name(temp));
+            NODE_LINE_NUMBER(actual);
         }
 
     }
@@ -484,7 +503,6 @@ void Synthesis::dump_registers(uint arg_amount) {
         mips_instruction("sw", "$a" + std::to_string(i), "0($sp)");
     }
 
-    text += "# register count" + std::to_string(register_pool.used.size()) + "\n";
     for (auto itr = register_pool.used.begin(); itr != register_pool.used.end(); itr++) {
         mips_instruction("addi", "$sp", "$sp", "-4");
         mips_instruction("sw", get_register_name(*itr), "0($sp)");

@@ -475,7 +475,7 @@ void Semantic::type_checking(Tree &node)
         }
     }
 
-    if (is_operator(node) || node.type == "if" || node.type == "while")
+    if (is_operator(node) || node.type == "if" || node.type == "if_else" || node.type == "while")
     {
         std::vector<std::string> type_to_check;
         for (uint i = 0; i < node.branches.size(); i++)
@@ -510,7 +510,7 @@ void Semantic::type_checking(Tree &node)
         else if (node.type == "=")
         {
             assignment_operator(node, type_to_check);
-        } else if(node.type == "if"){
+        } else if(node.type == "if" || node.type == "if_else"){
             //First branch of if is its expression
             if (node.branches[0].sig != "boolean"){
                 error("need a boolean expression", node);
