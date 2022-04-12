@@ -357,7 +357,7 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
             mips_instruction("la", get_register_name(dest), node.branches[0].sym->assembly_label);
             mips_instruction("sw", get_register_name(arg1), "0(" + get_register_name(dest) + ")");
             FREE_PRINT(dest)
-                register_pool.free_register(dest);
+            register_pool.free_register(dest);
         }
         else {
 
@@ -375,6 +375,7 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
                     register_pool.free_register(arg1);
             }
             else {
+                node.id_register = dest;
                 free_node_register(arg_node);
             }
         }
