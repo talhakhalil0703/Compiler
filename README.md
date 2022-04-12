@@ -6,6 +6,9 @@ To build the compiler simple run make.
 
 Compiler usage: main [filename]
 
+## MARKING
+For marking look under the MARKING folder.
+
 ### Tests
 
 #### Scanner Tests
