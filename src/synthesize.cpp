@@ -1,6 +1,6 @@
 #include "synthesize.hpp"
 
-#define _DEBUG
+// #define _DEBUG
 #ifdef _DEBUG
 #define FREE_PRINT(x) text += "# FREEING " + get_register_name(x) +"\n";
 #define TAKING_PRINT(x)  text += "# TAKING " + get_register_name(x) +"\n";
@@ -9,7 +9,7 @@
 #else
 #define FREE_PRINT(x)
 #define TAKING_PRINT(x) 
-
+#define NODE_LINE_NUMBER(x)
 #endif
 
 Synthesis::Synthesis(Semantic& sem, Tree& prog) : semantic(sem), program_tree(prog)
@@ -18,14 +18,11 @@ Synthesis::Synthesis(Semantic& sem, Tree& prog) : semantic(sem), program_tree(pr
     global_pass(program_tree);
     synthesize(program_tree);
     add_return_label();
-#ifdef _DEBUG
-    // print_assembly();
-#endif
+    print_assembly();
 }
 
 void Synthesis::print_assembly()
 {
-    std::cout << "Assembly Output:" << std::endl;
     std::cout << data << std::endl;
     std::cout << text << std::endl;
 }

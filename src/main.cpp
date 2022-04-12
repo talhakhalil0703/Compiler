@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     auto parser = std::make_unique<Parser>(&file);
     Tree program = parser->parse();
     Semantic semantic_analysis = Semantic(program);
-    program.print(0);
+    // program.print(0);
     auto synt = Synthesis(semantic_analysis, semantic_analysis.program);
 
 
