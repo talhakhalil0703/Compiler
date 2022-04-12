@@ -9,6 +9,9 @@ Compiler usage: main [filename]
 ## MARKING
 For marking look under the MARKING folder.
 
+gen.t13, gen.t33, gen.t18 required input so their output was manually pasted in.
+gen.t22 as bytes and can't be seen on gitlab please download it to view it
+
 ### Tests
 
 #### Scanner Tests

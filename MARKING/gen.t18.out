@@ -1,5 +1,11 @@
 Loaded: /home/profs/aycock/411/sw/share/spim/exceptions.s
+1+1
  = 2
- = 21
- = 75
-Error: expected factor.
+23+3
+ = 26
+123/4
+ = 30
+1+(54*7)+3
+ = 382
+a
+Error: invalid character.
