@@ -160,7 +160,16 @@ void Synthesis::synthesize(Tree& node)
         // Evalulate expression
         evaluate_expressions(node.branches[0]);
         //Test expression
-        mips_instruction("beqz", get_register_name(node.branches[0].id_register), else_label);
+        // mips_instruction("beqz", get_register_name(node.branches[0].id_register), else_label);
+
+        SingleRegister temp_reg = get_register();
+        std::string beqz_label = else_label + "beqz";
+        mips_instruction("seq", get_register_name(temp_reg), get_register_name(node.branches[0].id_register), "$0");
+        mips_instruction("beqz", get_register_name(temp_reg), beqz_label);
+        mips_instruction("j",  else_label);
+        add_label(beqz_label);
+        register_pool.free_register(temp_reg);
+
         free_node_register(node.branches[0]);
         // if statement
         synthesize(node.branches[1]);
@@ -172,7 +181,16 @@ void Synthesis::synthesize(Tree& node)
     else if (node.type == "if") {
         std::string label = "end_if_" + get_label();
         evaluate_expressions(node.branches[0]);
-        mips_instruction("beqz", get_register_name(node.branches[0].id_register), label);
+        // mips_instruction("beqz", get_register_name(node.branches[0].id_register), label);
+
+        SingleRegister temp_reg = get_register();
+        std::string beqz_label = label + "beqz";
+        mips_instruction("seq", get_register_name(temp_reg), get_register_name(node.branches[0].id_register), "$0");
+        mips_instruction("beqz", get_register_name(temp_reg), beqz_label);
+        mips_instruction("j",  label);
+        add_label(beqz_label);
+        register_pool.free_register(temp_reg);
+
         free_node_register(node.branches[0]);
         //Statement synthesis? like the if statment block synthesis
         synthesize(node.branches[1]);
@@ -184,10 +202,30 @@ void Synthesis::synthesize(Tree& node)
         Tree arg1 = node.branches[0];
         Tree arg2 = node.branches[1];
         evaluate_expressions(arg1);
-        mips_instruction("bnez", get_register_name(arg1.id_register), true_label);
+
+        // mips_instruction("bnez", get_register_name(arg1.id_register), true_label);
+        
+        SingleRegister temp_reg = get_register();
+        std::string beqz_label = true_label + "beqz";
+        mips_instruction("sne", get_register_name(temp_reg), get_register_name(arg1.id_register), "$0");
+        mips_instruction("beqz", get_register_name(temp_reg), beqz_label);
+        mips_instruction("j",  true_label);
+        add_label(beqz_label);
+        register_pool.free_register(temp_reg);
+
         free_node_register(arg1);
         evaluate_expressions(arg2);
-        mips_instruction("bnez", get_register_name(arg2.id_register), true_label);
+
+        // mips_instruction("bnez", get_register_name(arg2.id_register), true_label);
+        
+        temp_reg = get_register();
+        beqz_label = true_label + "beqz2";
+        mips_instruction("sne", get_register_name(temp_reg), get_register_name(arg2.id_register), "$0");
+        mips_instruction("beqz", get_register_name(temp_reg), beqz_label);
+        mips_instruction("j",  true_label);
+        add_label(beqz_label);
+        register_pool.free_register(temp_reg);
+
         free_node_register(arg2);
         SingleRegister dest = get_register();
         // otherwise is false
@@ -204,10 +242,29 @@ void Synthesis::synthesize(Tree& node)
         Tree arg1 = node.branches[0];
         Tree arg2 = node.branches[1];
         evaluate_expressions(arg1);
-        mips_instruction("beqz", get_register_name(arg1.id_register), false_label);
+
+        // mips_instruction("beqz", get_register_name(arg1.id_register), false_label);
+        SingleRegister temp_reg = get_register();
+        std::string beqz_label = false_label + "beqz";
+        mips_instruction("seq", get_register_name(temp_reg), get_register_name(arg1.id_register), "$0");
+        mips_instruction("beqz", get_register_name(temp_reg), beqz_label);
+        mips_instruction("j",  false_label);
+        add_label(beqz_label);
+        register_pool.free_register(temp_reg);
+
         free_node_register(arg1);
         evaluate_expressions(arg2);
-        mips_instruction("beqz", get_register_name(arg2.id_register), false_label);
+
+        // mips_instruction("beqz", get_register_name(arg2.id_register), false_label);
+        
+        temp_reg = get_register();
+        beqz_label = false_label + "beqz2";
+        mips_instruction("seq", get_register_name(temp_reg), get_register_name(arg2.id_register), "$0");
+        mips_instruction("beqz", get_register_name(temp_reg), beqz_label);
+        mips_instruction("j",  false_label);
+        add_label(beqz_label);
+        register_pool.free_register(temp_reg);
+
         free_node_register(arg2);
         SingleRegister dest = get_register();
         // otherwise is true
@@ -224,7 +281,16 @@ void Synthesis::synthesize(Tree& node)
         while_labels.push(exit_label);
         add_label(start_label);
         evaluate_expressions(node.branches[0]);
-        mips_instruction("beqz", get_register_name(node.branches[0].id_register), exit_label);
+        // mips_instruction("beqz", get_register_name(node.branches[0].id_register), exit_label);
+
+        SingleRegister temp_reg = get_register();
+        std::string beqz_label = exit_label + "beqz";
+        mips_instruction("seq", get_register_name(temp_reg), get_register_name(node.branches[0].id_register), "$0");
+        mips_instruction("beqz", get_register_name(temp_reg), beqz_label);
+        mips_instruction("j",  exit_label);
+        add_label(beqz_label);
+        register_pool.free_register(temp_reg);
+
         free_node_register(node.branches[0]);
         if (node.branches.size() == 2) {
             synthesize(node.branches[1]);
