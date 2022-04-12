@@ -14,13 +14,13 @@ test_compiler = "./main"
 runtime_system = """
 .data
 true_boolean:
-	.byte 84, 82, 85, 69, 0
+	.byte 84 82 85 69 0
 	.align 2
 false_boolean:
-	.byte 70, 65, 76, 83, 69, 0
+	.byte 70 65 76 83 69 0
 	.align 2
 div_by_zero:
-	.byte  100 , 105 , 118 , 105 , 115 , 105 , 111 , 110 , 32 , 98 , 121 , 32 , 122 , 101 , 114 , 111 , 0
+	.byte  100 105 118 105 115 105 111 110 32 98 121 32 122 101 114 111 0
 	.align 2
 char:
 	.space 2
@@ -143,9 +143,9 @@ for test in tests:
         if test_spim_output != reference_spim_output:
             print('\033[91m' + "FAIL" + '\033[0m')
             if SHOW_DIFF_OUTPUT:
-                print("MY OUTPUT\n")
+                print("MY OUTPUT")
                 print(test_spim_output)
-                print("AYCOCKS OUTPUT\n")
+                print("AYCOCKS OUTPUT")
                 print(reference_spim_output)            
             fail_count = fail_count + 1
         else:
