@@ -7,7 +7,7 @@ import ctypes
 # Only change these:
 DEFAULT_TIMEOUT_S = 5
 SHOW_DIFF_OUTPUT = True 
-asm_dir = "/asm"
+asm_dir = "./asm"
 test_compiler = "./main"
 
 # Dump your runtime system here after .text, make sure to prefix the function label names with 'L'
@@ -143,8 +143,9 @@ for test in tests:
         if test_spim_output != reference_spim_output:
             print('\033[91m' + "FAIL" + '\033[0m')
             if SHOW_DIFF_OUTPUT:
+                print("MY OUTPUT\n")
                 print(test_spim_output)
-                print("===")
+                print("AYCOCKS OUTPUT\n")
                 print(reference_spim_output)            
             fail_count = fail_count + 1
         else:
