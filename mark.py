@@ -62,7 +62,8 @@ for test in tests:
             fd.write(test_spim_output)
     except subprocess.TimeoutExpired:
         with open(out_file, "wb") as fd:
-            fd.write(subprocess.Popen.stdout)
+            out, _ = subprocess.Popen.communicate()
+            fd.write(out)
         print('\033[91m' + "FAIL (TIMEOUT)" + '\033[0m')        
        
         continue
