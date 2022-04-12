@@ -689,7 +689,7 @@ std::string Synthesis::convert_string_to_bytes(std::string& str)
                 x = 9;
                 break;
             case 114: // r
-                x = 31;
+                x = 13;
                 break;
             case 110: // n
                 x = 10;
