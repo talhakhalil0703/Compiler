@@ -33,8 +33,8 @@ void Synthesis::print_assembly()
 void Synthesis::run_time_libraries()
 {
     std::string return_string = "\tjr $ra\n";
-    std::string true_string = "\t.byte 84, 82, 85, 69, 0\n";
-    std::string false_string = "\t.byte 70, 65, 76, 83, 69, 0\n";
+    std::string true_string = "\t.byte 84 82 85 69 0\n";
+    std::string false_string = "\t.byte 70 65 76 83 69 0\n";
     std::string align = "\t.align 2\n";
     std::string dot_data = ".data\n";
     std::string dot_text = ".text\n";
@@ -52,7 +52,7 @@ void Synthesis::run_time_libraries()
 
     data = dot_data + "true_boolean:\n" + true_string + align + "false_boolean:\n" + false_string + align;
     data += "div_by_zero:\n";
-    data += "\t.byte  100 , 105 , 118 , 105 , 115 , 105 , 111 , 110 , 32 , 98 , 121 , 32 , 122 , 101 , 114 , 111 , 0\n";
+    data += "\t.byte  100 105 118 105 115 105 111 110 32 98 121 32 122 101 114 111 0\n";
     data += align;
     data += "char:\n";
     data += "\t.space 2\n";
@@ -640,10 +640,10 @@ std::string Synthesis::convert_string_to_bytes(std::string& str)
         }
         return_string += std::to_string(x);
         if (i != str.size() - 1)
-            return_string += ", ";
+            return_string += " ";
     }
     if (int(str[str.size() - 1]) != 0) {
-        return_string += ", 0";
+        return_string += " 0";
     }
     return_string += " # " + str;
     return_string += "\n\t.align 2\n";
