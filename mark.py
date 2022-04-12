@@ -59,7 +59,7 @@ for test in tests:
 
         test_spim_output = do_spim_run(s_file, stdin_buffer)
         # save spim output
-        with open(out_file, "w") as fd:
+        with open(out_file, "wb") as fd:
             fd.write(test_spim_output)
     except subprocess.TimeoutExpired:
         print('\033[91m' + "FAIL (TIMEOUT)" + '\033[0m')        
