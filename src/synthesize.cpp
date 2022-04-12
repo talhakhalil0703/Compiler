@@ -170,6 +170,45 @@ void Synthesis::synthesize(Tree& node)
         //Statement synthesis? like the if statment block synthesis
         synthesize(node.branches[1]);
         add_label(label);
+    } 
+    else if (node.type == "OR"){
+        std::string done_label = "or_done" + get_label();
+        std::string true_label = "or_true" + get_label();
+        Tree arg1 = node.branches[0];
+        Tree arg2 = node.branches[1];
+        evaluate_expressions(arg1);
+        mips_instruction("bnez", get_register_name(arg1.id_register), true_label);
+        free_node_register(arg1);
+        evaluate_expressions(arg2);
+        mips_instruction("bnez", get_register_name(arg2.id_register), true_label);
+        free_node_register(arg2);
+        SingleRegister dest = get_register();
+        // otherwise is false
+        mips_instruction("li", get_register_name(dest), "0" );
+        mips_instruction("j", done_label);
+        add_label(true_label);
+        mips_instruction("li", get_register_name(dest), "1" );
+        add_label(done_label);
+        node.id_register = dest;
+    } else if (node.type == "AND"){
+        std::string done_label = "and_done" + get_label();
+        std::string false_label = "and_false" + get_label();
+        Tree arg1 = node.branches[0];
+        Tree arg2 = node.branches[1];
+        evaluate_expressions(arg1);
+        mips_instruction("beqz", get_register_name(arg1.id_register), false_label);
+        free_node_register(arg1);
+        evaluate_expressions(arg2);
+        mips_instruction("beqz", get_register_name(arg2.id_register), false_label);
+        free_node_register(arg2);
+        SingleRegister dest = get_register();
+        // otherwise is true
+        mips_instruction("li", get_register_name(dest), "1" );
+        mips_instruction("j", done_label);
+        add_label(false_label);
+        mips_instruction("li", get_register_name(dest), "0" );
+        add_label(done_label);
+        node.id_register = dest;
     }
     else if (node.type == "while") {
         std::string start_label = "while_" + get_label();
@@ -273,9 +312,12 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
         node.id_register = reg;
     }
 
+    if (node_type != "OR" && node_type != "AND"){
+
     for (uint i = 0; i < node.branches.size(); i++)
     {
         evaluate_expressions(node.branches[i], node.type);
+    }
     }
 
     if (node.type == "=")
@@ -328,9 +370,12 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
     {
         unary_operator(node);
     }
-    else if (node.type == "+" || node.type == "*" || node.type == "/" || node.type == "%" || node.type == "<" || node.type == ">" || node.type == ">=" || node.type == "<=" || node.type == "==" || node.type == "!=" || node.type == "AND" || node.type == "OR")
+    else if (node.type == "+" || node.type == "*" || node.type == "/" || node.type == "%" || node.type == "<" || node.type == ">" || node.type == ">=" || node.type == "<=" || node.type == "==" || node.type == "!=")
     {
         tri_operator(node);
+    }
+    else if (node.type == "OR" || node.type == "AND"){
+        synthesize(node);
     }
     else if (node.type == "-") {
         min_operator(node);
@@ -343,38 +388,35 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
 
 void Synthesis::unary_operator(Tree& node)
 {
-
-    if (node.type == "!") {
-        SingleRegister arg1 = node.branches[0].id_register;
-        SingleRegister dest = get_register();
-        node.id_register = dest;
-        mips_instruction("xori", get_register_name(dest), get_register_name(arg1), "1");
-        // if (dest != arg1){
-            free_node_register(node.branches[0]);
-        // }
-    }
-
-
+    if (node.type != "!") return;
+    SingleRegister arg1 = node.branches[0].id_register;
+    SingleRegister dest = get_register();
+    node.id_register = dest;
+    mips_instruction("xori", get_register_name(dest), get_register_name(arg1), "1");
+    // if (dest != arg1){
+        free_node_register(node.branches[0]);
+    // }
 }
+
 void Synthesis::min_operator(Tree& node) {
-    if (node.type == "-") {
-        SingleRegister dest = get_register();
-        SingleRegister arg1 = node.branches[0].id_register;
-        if (node.branches.size() == 1) {
-            mips_instruction("negu", get_register_name(dest), get_register_name(arg1));
-        }
-        else if (node.branches.size() == 2) {
-            SingleRegister arg2 = node.branches[1].id_register;
-            mips_instruction("subu", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
-            // if (dest != arg2){
-                free_node_register(node.branches[1]);
-            // }
-        }
-        // if (dest != arg1){
-            free_node_register(node.branches[0]);
-        // }
-        node.id_register = dest;
+    if (node.type != "-") return;
+    SingleRegister dest = get_register();
+    SingleRegister arg1 = node.branches[0].id_register;
+    if (node.branches.size() == 1) {
+        mips_instruction("negu", get_register_name(dest), get_register_name(arg1));
     }
+    else if (node.branches.size() == 2) {
+        SingleRegister arg2 = node.branches[1].id_register;
+        mips_instruction("subu", get_register_name(dest), get_register_name(arg1), get_register_name(arg2));
+        // if (dest != arg2){
+            free_node_register(node.branches[1]);
+        // }
+    }
+    // if (dest != arg1){
+        free_node_register(node.branches[0]);
+    // }
+    node.id_register = dest;
+    
 }
 
 void Synthesis::tri_operator(Tree& node)
@@ -435,30 +477,24 @@ void Synthesis::tri_operator(Tree& node)
     }
     else if (node.type == "AND")
     {
-        std::string label = get_label();
-        mips_instruction("move", get_register_name(dest), get_register_name(arg1));
-        mips_instruction("beqz", get_register_name(dest), label);
-        mips_instruction("move", get_register_name(dest), get_register_name(arg2));
-        add_label(label);
-        // node.id_register = dest;
-        // return;
+        // std::string label = get_label();
+        // mips_instruction("move", get_register_name(dest), get_register_name(arg1));
+        // mips_instruction("beqz", get_register_name(dest), label);
+        // mips_instruction("move", get_register_name(dest), get_register_name(arg2));
+        // add_label(label);
     }
     else if (node.type == "OR")
     {
-        std::string label = get_label();
-        mips_instruction("move", get_register_name(dest), get_register_name(arg1));
-        mips_instruction("bnez", get_register_name(dest), label);
-        mips_instruction("move", get_register_name(dest), get_register_name(arg2));
-        add_label(label);
-        // node.id_register = dest;
-        // return;
+        // std::string label = get_label();
+        // mips_instruction("move", get_register_name(dest), get_register_name(arg1));
+        // mips_instruction("bnez", get_register_name(dest), label);
+        // mips_instruction("move", get_register_name(dest), get_register_name(arg2));
+        // add_label(label);
     }
-    // if (dest != arg1){
-        free_node_register(node.branches[0]);
-    // }
-    // if (dest != arg2){
-        free_node_register(node.branches[1]);
-    // }
+ 
+    free_node_register(node.branches[0]);
+
+    free_node_register(node.branches[1]);
     node.id_register = dest;
 }
 
