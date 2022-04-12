@@ -1,0 +1,84 @@
+Loaded: /home/profs/aycock/411/sw/share/spim/exceptions.s
+if ((A && B) || C) {...} else {...}, with A=FALSE B=FALSE C=FALSE
+evaluated A
+evaluated C
+else-part executed
+
+if ((A && B) || C) {...} else {...}, with A=FALSE B=FALSE C=TRUE
+evaluated A
+evaluated C
+if-part executed
+
+if ((A && B) || C) {...} else {...}, with A=FALSE B=TRUE C=FALSE
+evaluated A
+evaluated C
+else-part executed
+
+if ((A && B) || C) {...} else {...}, with A=FALSE B=TRUE C=TRUE
+evaluated A
+evaluated C
+if-part executed
+
+if ((A && B) || C) {...} else {...}, with A=TRUE B=FALSE C=FALSE
+evaluated A
+evaluated B
+evaluated C
+else-part executed
+
+if ((A && B) || C) {...} else {...}, with A=TRUE B=FALSE C=TRUE
+evaluated A
+evaluated B
+evaluated C
+if-part executed
+
+if ((A && B) || C) {...} else {...}, with A=TRUE B=TRUE C=FALSE
+evaluated A
+evaluated B
+if-part executed
+
+if ((A && B) || C) {...} else {...}, with A=TRUE B=TRUE C=TRUE
+evaluated A
+evaluated B
+if-part executed
+
+x = (A && !B) || C, with A=FALSE B=FALSE C=FALSE
+evaluated A
+evaluated C
+x=FALSE
+
+x = (A && !B) || C, with A=FALSE B=FALSE C=TRUE
+evaluated A
+evaluated C
+x=TRUE
+
+x = (A && !B) || C, with A=FALSE B=TRUE C=FALSE
+evaluated A
+evaluated C
+x=FALSE
+
+x = (A && !B) || C, with A=FALSE B=TRUE C=TRUE
+evaluated A
+evaluated C
+x=TRUE
+
+x = (A && !B) || C, with A=TRUE B=FALSE C=FALSE
+evaluated A
+evaluated B
+x=TRUE
+
+x = (A && !B) || C, with A=TRUE B=FALSE C=TRUE
+evaluated A
+evaluated B
+x=TRUE
+
+x = (A && !B) || C, with A=TRUE B=TRUE C=FALSE
+evaluated A
+evaluated B
+evaluated C
+x=FALSE
+
+x = (A && !B) || C, with A=TRUE B=TRUE C=TRUE
+evaluated A
+evaluated B
+evaluated C
+x=TRUE
