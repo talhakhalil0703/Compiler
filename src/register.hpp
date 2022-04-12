@@ -103,8 +103,9 @@ public:
 
     }
 
-    SingleRegister get_register(){
+    SingleRegister get_register(std::string test){
         if (unused.empty()){
+            std::cout << test << std::endl;
             ErrorHandler().NonRecoverableError("error: Cannot get another register\n");
         }
 

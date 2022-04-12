@@ -116,6 +116,7 @@ void Synthesis::synthesize(Tree& node)
     {
         text += ".globl main\n";
         add_label("main");
+        register_pool = RegisterPool();
         synthesize(node.branches[3]); //block node
         mips_instruction("j", "Lhalt");
     }
@@ -223,7 +224,7 @@ void Synthesis::synthesize(Tree& node)
 
 SingleRegister Synthesis::get_register()
 {
-    SingleRegister reg = register_pool.get_register();
+    SingleRegister reg = register_pool.get_register(text);
     TAKING_PRINT(reg)    
     return reg;
 }
@@ -484,6 +485,9 @@ void Synthesis::function_call(Tree& node) {
                 temp = actual.branches[0].id_register;
             }
             mips_instruction("move", "$a" + std::to_string(i), get_register_name(temp));
+            if (actual.type != "="){
+                free_node_register(actual);
+            }
             NODE_LINE_NUMBER(actual);
         }
 
