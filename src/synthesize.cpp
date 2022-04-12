@@ -278,38 +278,47 @@ void Synthesis::evaluate_expressions(Tree& node, std::string parent_type)
 
     if (node.type == "=")
     {
-        SingleRegister id_reg = node.branches[0].id_register;
-        SingleRegister to_assign_reg = node.branches[1].id_register;
+        Tree dest_node = node.branches[0];
+        Tree arg_node = node.branches[1];
+        SingleRegister dest = dest_node.id_register;
+        SingleRegister arg1 = arg_node.id_register;
 
-        if (node.branches[1].type == "id"){
-            if (node.branches[1].sym->kind == Kind::global_var){
-                to_assign_reg = get_register();
-                mips_instruction("lw", get_register_name(to_assign_reg), node.branches[1].sym->assembly_label);
+        if (arg_node.type == "id"){
+            if (arg_node.sym->kind == Kind::global_var){
+                arg1 = get_register();
+                mips_instruction("lw", get_register_name(arg1), arg_node.sym->assembly_label);
+                // arg1 = get_register();
+                // SingleRegister temp = get_register();
+                // mips_instruction("la", get_register_name(temp), node.branches[1].sym->assembly_label);
+                // mips_instruction("sw", get_register_name(arg1), "0(" + get_register_name(temp) + ")");
+                // FREE_PRINT(temp)
+                // register_pool.free_register(temp);
+
             }
         }
 
-        if (node.branches[0].sym->kind == Kind::global_var) {
-            id_reg = get_register();
-            mips_instruction("la", get_register_name(id_reg), node.branches[0].sym->assembly_label);
-            mips_instruction("sw", get_register_name(to_assign_reg), "0(" + get_register_name(id_reg) + ")");
-            FREE_PRINT(id_reg)
-            register_pool.free_register(id_reg);
+        if (dest_node.sym->kind == Kind::global_var) {
+            dest = get_register();
+            mips_instruction("la", get_register_name(dest), node.branches[0].sym->assembly_label);
+            mips_instruction("sw", get_register_name(arg1), "0(" + get_register_name(dest) + ")");
+            FREE_PRINT(dest)
+            register_pool.free_register(dest);
         }
         else {
 
-            mips_instruction("move", get_register_name(id_reg), get_register_name(to_assign_reg));
+            mips_instruction("move", get_register_name(dest), get_register_name(arg1));
             NODE_LINE_NUMBER(node)
         }
 
         if (parent_type != "="){
-            if (node.branches[1].type == "id" && node.branches[1].sym->kind == Kind::global_var){
-                FREE_PRINT(to_assign_reg)
-                register_pool.free_register(to_assign_reg);
+            if (arg_node.type == "id" && arg_node.sym->kind == Kind::global_var){
+                FREE_PRINT(arg1)
+                register_pool.free_register(arg1);
             } else {
-                free_node_register(node.branches[1]);
+                free_node_register(arg_node);
             }
         } else {
-        node.id_register = to_assign_reg;
+            node.id_register = arg1;
         }
     }
     else if (node.type == "!")
